@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>RabbitMQ（一） - 配置详解 | 韬光养月巴的技术博客</title>
+  <meta name="description" content="启动 RabbitMQ docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 -v &#96;pwd&#96;&#x2F;data:&#x2F;var&#x2F;lib&#x2F;rabbitmq --hostname rabbit -e RABBITMQ_DEFAULT_VHOST&#x3D;my_vhost  -e RABBITMQ_DEFAULT_USER&#x3D;admin -e RABBITMQ_">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RabbitMQ（一） - 配置详解">
+<meta property="og:url" content="http://blog.tgyf.com/2020/02/23/Middleware/RabbitMQ/RabbitMQ/index.html">
+<meta property="og:site_name" content="韬光养月巴的技术博客">
+<meta property="og:description" content="启动 RabbitMQ docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 -v &#96;pwd&#96;&#x2F;data:&#x2F;var&#x2F;lib&#x2F;rabbitmq --hostname rabbit -e RABBITMQ_DEFAULT_VHOST&#x3D;my_vhost  -e RABBITMQ_DEFAULT_USER&#x3D;admin -e RABBITMQ_">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-23T14:46:51.882Z">
+<meta property="article:modified_time" content="2020-02-23T14:46:51.882Z">
+<meta property="article:author" content="韬光养月巴">
+<meta property="article:tag" content="RabbitMQ">
+<meta property="article:tag" content="MQ">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://blog.tgyf.com/2020/02/23/Middleware/RabbitMQ/RabbitMQ/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="韬光养月巴的技术博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/tgyf" target="_blank">
+          <img class="img-circle img-rotate" src="/images/sw.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">韬光养月巴</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Chengdu, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/tgyf" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/tgyf" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/tgyf" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎访问韬光养月巴的技术博客</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2/">应用部署</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQ/" rel="tag">MQ</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%9D%E6%83%B3/" rel="tag">思想</a><span class="tag-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/MQ/" style="font-size: 14px;">MQ</a> <a href="/tags/RabbitMQ/" style="font-size: 13.5px;">RabbitMQ</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 13px;">博客</a> <a href="/tags/%E6%80%9D%E6%83%B3/" style="font-size: 13px;">思想</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">8</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2/">应用部署</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/02/23/Blog/Hexo%E4%B8%BB%E9%A2%98pure%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" class="title">Hexo主题pure使用指南</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-02-23T15:12:34.123Z" itemprop="datePublished">2020-02-23</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/02/23/Middleware/MQ%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93%EF%BC%88%E4%B8%80%EF%BC%89/" class="title">MQ的一些总结（一）</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-02-23T14:47:26.002Z" itemprop="datePublished">2020-02-23</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/02/23/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/" class="title">RabbitMQ（四） - 优先级队列(PriorityQueue)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-02-23T14:47:09.290Z" itemprop="datePublished">2020-02-23</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/02/23/Middleware/RabbitMQ/RabbitMQ-Exchang/" class="title">RabbitMQ（二） - 交换器（Exchange）</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-02-23T14:47:03.570Z" itemprop="datePublished">2020-02-23</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/02/23/Middleware/RabbitMQ/RabbitMQ-DeadletterQueue/" class="title">RabbitMQ（三） - 死信队列(DeadLetterQueue)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-02-23T14:46:58.376Z" itemprop="datePublished">2020-02-23</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#启动-rabbitmq"><span class="toc-number">1.</span> <span class="toc-text"> 启动 RabbitMQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内容结构"><span class="toc-number">2.</span> <span class="toc-text"> 内容结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#spring-boot-rabbitmq-参数配置详解"><span class="toc-number">3.</span> <span class="toc-text"> Spring Boot  RabbitMQ 参数配置详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#连接配置"><span class="toc-number">3.1.</span> <span class="toc-text"> 连接配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#publisher-配置"><span class="toc-number">3.2.</span> <span class="toc-text"> Publisher 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#consumer-设置"><span class="toc-number">3.3.</span> <span class="toc-text"> Consumer 设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#其他设置"><span class="toc-number">3.4.</span> <span class="toc-text"> 其他设置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#spring-boot-rabbitmq-队列属性详解"><span class="toc-number">4.</span> <span class="toc-text"> Spring Boot RabbitMQ 队列属性详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#常见问题"><span class="toc-number">4.1.</span> <span class="toc-text"> 常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-声明了一个已经存在的队列"><span class="toc-number">4.1.1.</span> <span class="toc-text"> 1. 声明了一个已经存在的队列？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-队列中消息顺序"><span class="toc-number">4.1.2.</span> <span class="toc-text"> 2. 队列中消息顺序？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-队列消息存放位置"><span class="toc-number">4.1.3.</span> <span class="toc-text"> 3. 队列消息存放位置？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-队列中消息的消费"><span class="toc-number">4.1.4.</span> <span class="toc-text"> 4. 队列中消息的消费？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-队列中消息的消费速度"><span class="toc-number">4.1.5.</span> <span class="toc-text"> 5. 队列中消息的消费速度？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-队列中消息状态"><span class="toc-number">4.1.6.</span> <span class="toc-text"> 6. 队列中消息状态？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-关于死信队列"><span class="toc-number">4.1.7.</span> <span class="toc-text"> 7. 关于死信队列？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-关于不能路由到队列的消息"><span class="toc-number">4.1.8.</span> <span class="toc-text"> 8. 关于不能路由到队列的消息？</span></a></li></ol></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Middleware/RabbitMQ/RabbitMQ" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      RabbitMQ（一） - 配置详解
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/02/23/Middleware/RabbitMQ/RabbitMQ/" class="article-date">
+	  <time datetime="2020-02-23T14:46:51.882Z" itemprop="datePublished">2020-02-23</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/MQ/" rel="tag">MQ</a>, <a class="article-tag-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/02/23/Middleware/RabbitMQ/RabbitMQ/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="启动-rabbitmq"><a class="markdownIt-Anchor" href="#启动-rabbitmq"></a> 启动 RabbitMQ</h2>
+<pre><code>docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 -v `pwd`/data:/var/lib/rabbitmq --hostname rabbit -e RABBITMQ_DEFAULT_VHOST=my_vhost  -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=admin rabbitmq:3.7-management-plugins
+</code></pre>
+<ul>
+<li>构建RabbitMQ镜像参考<a href="https://github.com/tgyf/dockerfile/tree/master/rabbitmq" target="_blank" rel="noopener">RabbitMQ 镜像dockerfile</a></li>
+</ul>
+<h2 id="内容结构"><a class="markdownIt-Anchor" href="#内容结构"></a> 内容结构</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">序号</th>
+<th style="text-align:left">内容名称</th>
+<th style="text-align:left">内容说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">1</td>
+<td style="text-align:left">exchange</td>
+<td style="text-align:left">交换器</td>
+</tr>
+<tr>
+<td style="text-align:left">2</td>
+<td style="text-align:left">priorityqueue</td>
+<td style="text-align:left">优先级队列</td>
+</tr>
+<tr>
+<td style="text-align:left">3</td>
+<td style="text-align:left">deadletterqueue</td>
+<td style="text-align:left">死信队列</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spring-boot-rabbitmq-参数配置详解"><a class="markdownIt-Anchor" href="#spring-boot-rabbitmq-参数配置详解"></a> Spring Boot  RabbitMQ 参数配置详解</h2>
+<h3 id="连接配置"><a class="markdownIt-Anchor" href="#连接配置"></a> 连接配置</h3>
+<pre><code>spring.rabbitmq.host=localhost                          # RabbitMQ 地址
+spring.rabbitmq.port=5672                               # RabbitMQ 端口
+spring.rabbitmq.username=guest                          # RabbitMQ 用户名
+spring.rabbitmq.password=guest                          # RabbitMQ 密码
+
+spring.rabbitmq.addresses=                              # 设置 RabbitMQ 集群，多个地址使用 &quot;,&quot; 分隔，例如：192.168.0.100:5672,192.168.0.101:5672
+
+spring.rabbitmq.virtual-host=                           # 设置 Virtual Host
+
+spring.rabbitmq.ssl.algorithm=                          # SSL 算法，默认情况下，由 Rabbit 客户端配置
+spring.rabbitmq.ssl.enabled=false                       # 是否启用 SSL 支持
+spring.rabbitmq.ssl.key-store=                          # key 存储路径
+spring.rabbitmq.ssl.key-store-password=                 # 用于访问 key 的密码
+spring.rabbitmq.ssl.key-store-type=PKCS12               # Key 存储类型
+spring.rabbitmq.ssl.trust-store=                        # Trust 存储路径
+spring.rabbitmq.ssl.trust-store-password=               # 用于访问 Trust 的密码
+spring.rabbitmq.ssl.trust-store-type=JKS                # Trust 存储类型
+spring.rabbitmq.ssl.validate-server-certificate=true    # 是否启用服务端证书验证
+spring.rabbitmq.ssl.verify-hostname=true                # 是否启用 hostname 验证
+</code></pre>
+<h3 id="publisher-配置"><a class="markdownIt-Anchor" href="#publisher-配置"></a> Publisher 配置</h3>
+<pre><code>spring.rabbitmq.publisher-confirms=false                # 是否启用 publisher 确认
+spring.rabbitmq.publisher-returns=false                 # 是否启用 publisher 返回
+
+spring.rabbitmq.template.default-receive-queue=         # 没有没确定指定队列时的默认队列
+spring.rabbitmq.template.exchange=                      # 发送消息默认的 exchange
+spring.rabbitmq.template.mandatory=                     # 是否启用 mandatory 消息
+spring.rabbitmq.template.receive-timeout=               # `receive()` 操作的超时时间
+spring.rabbitmq.template.reply-timeout=                 # `sendAndReceive()` 操作的超时时间
+spring.rabbitmq.template.retry.enabled=false            # 是否启用重试
+spring.rabbitmq.template.retry.initial-interval=1000ms  # 两次重试间的时间间隔
+spring.rabbitmq.template.retry.max-attempts=3           # 最大重试次数
+spring.rabbitmq.template.retry.max-interval=10000ms     # 最长重试时间
+spring.rabbitmq.template.retry.multiplier=1             # Multiplier to apply to the previous retry interval.
+spring.rabbitmq.template.routing-key=                   # 发送消息默认的 routing key
+</code></pre>
+<h3 id="consumer-设置"><a class="markdownIt-Anchor" href="#consumer-设置"></a> Consumer 设置</h3>
+<pre><code>spring.rabbitmq.listener.direct.acknowledge-mode=           # 确认模式：auto / manual / none
+spring.rabbitmq.listener.direct.auto-startup=true           # 是否在应用启动时自动启动容器
+spring.rabbitmq.listener.direct.consumers-per-queue=        # 每个队列的消费者数量
+spring.rabbitmq.listener.direct.default-requeue-rejected=   # 默认情况下，拒收的消息是否重新排队
+spring.rabbitmq.listener.direct.idle-event-interval=        # 空闲容器事件发布的频率
+spring.rabbitmq.listener.direct.missing-queues-fatal=false  # 如果容器声明的队列在 broker 上不可用，是否失败
+spring.rabbitmq.listener.direct.prefetch=                   # 预加载的消息数量
+spring.rabbitmq.listener.direct.retry.enabled=false         # 是否启用发布重试
+spring.rabbitmq.listener.direct.retry.initial-interval=1000ms   # 两次重试时间间隔
+spring.rabbitmq.listener.direct.retry.max-attempts=3        # 最大重试次数
+spring.rabbitmq.listener.direct.retry.max-interval=10000ms  # 最长重试时间
+spring.rabbitmq.listener.direct.retry.multiplier=1          # 上次重试间隔的倍数
+spring.rabbitmq.listener.direct.retry.stateless=true        # 重试是否有状态
+
+spring.rabbitmq.listener.simple.acknowledge-mode=           # 确认模式：auto / manual / none
+spring.rabbitmq.listener.simple.auto-startup=true           # 是否在应用启动时自动启动容器
+spring.rabbitmq.listener.simple.concurrency=                # 监听器最小线程数
+spring.rabbitmq.listener.simple.default-requeue-rejected=   # 默认情况下，拒收的消息是否重新排队
+spring.rabbitmq.listener.simple.idle-event-interval=        # 空闲容器事件发布的频率
+spring.rabbitmq.listener.simple.max-concurrency=            # 监听器最大线程数
+spring.rabbitmq.listener.simple.missing-queues-fatal=true   # 如果容器声明的队列在 broker 上不可用，是否失败； 如果在运行时删除队列，容器是否停止
+spring.rabbitmq.listener.simple.prefetch=                   # 预加载的消息数量
+spring.rabbitmq.listener.simple.retry.enabled=false         # 是否启用发布重试
+spring.rabbitmq.listener.simple.retry.initial-interval=1000ms   # 两次重试时间间隔
+spring.rabbitmq.listener.simple.retry.max-attempts=3        # 最大重试次数
+spring.rabbitmq.listener.simple.retry.max-interval=10000ms  # 最长重试时间
+spring.rabbitmq.listener.simple.retry.multiplier=1          # 上次重试间隔的倍数
+spring.rabbitmq.listener.simple.retry.stateless=true        # 重试是否有状态
+spring.rabbitmq.listener.simple.transaction-size=           # 确认模式为 auto 时，在 acks 之间处理的消息数. 如果大于预加载的数量，则预加载的数量增加到此值
+</code></pre>
+<p>rabbitmq listener 类型有两种：simple 和 direct，二者有什么区别呢？ DirectMessageListenerContainer 注释如下：</p>
+<ul>
+<li>The {@code SimpleMessageListenerContainer} is not so simple. Recent changes to the</li>
+<li>rabbitmq java client has facilitated a much simpler listener container that invokes the</li>
+<li>listener directly on the rabbit client consumer thread. There is no txSize property -</li>
+<li>each message is acked (or nacked) individually.</li>
+</ul>
+<h3 id="其他设置"><a class="markdownIt-Anchor" href="#其他设置"></a> 其他设置</h3>
+<pre><code>spring.rabbitmq.dynamic=true                                # 是否创建 AmqpAdmin bean
+
+spring.rabbitmq.requested-heartbeat=                        # 请求心跳超时时间. 设置为 0 代表没有，如果未指定时间后缀，则默认使用秒
+</code></pre>
+<h2 id="spring-boot-rabbitmq-队列属性详解"><a class="markdownIt-Anchor" href="#spring-boot-rabbitmq-队列属性详解"></a> Spring Boot RabbitMQ 队列属性详解</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名称</th>
+<th style="text-align:left">属性说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Durable</td>
+<td style="text-align:left">代表该队列是否持久化至硬盘（若要使队列中消息不丢失，同时也需要将消息声明为持久化</td>
+</tr>
+<tr>
+<td style="text-align:left">Exclusive</td>
+<td style="text-align:left">是否声明该队列是否为连接独占，若为独占，连接关闭后队列即被删除</td>
+</tr>
+<tr>
+<td style="text-align:left">Auto-delete</td>
+<td style="text-align:left">若没有消费者订阅该队列，队列将被删除</td>
+</tr>
+<tr>
+<td style="text-align:left">Arguments</td>
+<td style="text-align:left">可选map类型参数，可以指定队列长度，消息生存时间，镜相设置等</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>RabbitMQ规定，队列的名字最长不超过UTF-8编码的255字节</li>
+<li>RabbitMQ内部的Queue命名规则采用 &quot;amq.&quot;形式，注意不要与此规则冲突</li>
+</ul>
+<h3 id="常见问题"><a class="markdownIt-Anchor" href="#常见问题"></a> 常见问题</h3>
+<h4 id="1-声明了一个已经存在的队列"><a class="markdownIt-Anchor" href="#1-声明了一个已经存在的队列"></a> 1. 声明了一个已经存在的队列？</h4>
+<ul>
+<li>如果队列已经存在，再次声明将不会起作用。若原始队列参数和该次声明时不同则会报异常。</li>
+</ul>
+<h4 id="2-队列中消息顺序"><a class="markdownIt-Anchor" href="#2-队列中消息顺序"></a> 2. 队列中消息顺序？</h4>
+<ul>
+<li>默认情况下是FIFO，即先进先出，同时也支持发送消息时指定消息的优先级。</li>
+</ul>
+<h4 id="3-队列消息存放位置"><a class="markdownIt-Anchor" href="#3-队列消息存放位置"></a> 3. 队列消息存放位置？</h4>
+<ul>
+<li>对于临时消息，RabbitMQ尽量将其存放在内存，当出现内存告警时，MQ会将消息持久化至硬盘。对于持久化消息与Lazy-queues，MQ会先将消息存入硬盘，消费时再取出。</li>
+</ul>
+<h4 id="4-队列中消息的消费"><a class="markdownIt-Anchor" href="#4-队列中消息的消费"></a> 4. 队列中消息的消费？</h4>
+<ul>
+<li>默认情况下，MQ会设置消费者的消费确认模式为自动。对于一些重要消息的处理，推荐确认模式改为手动。（nack和reject区别？nack可以一次拒绝多条消息）</li>
+</ul>
+<h4 id="5-队列中消息的消费速度"><a class="markdownIt-Anchor" href="#5-队列中消息的消费速度"></a> 5. 队列中消息的消费速度？</h4>
+<ul>
+<li>通过Prefetch（通道上最大未确认投递数量）设置消费者每次消费的条数，一般将该值设为1，但他会降低吞吐量。RabbitMQ官网建议的是100-300.（更建议反复试验得到一个表现符合期望的值）</li>
+</ul>
+<h4 id="6-队列中消息状态"><a class="markdownIt-Anchor" href="#6-队列中消息状态"></a> 6. 队列中消息状态？</h4>
+<ul>
+<li>队列中的消息共有俩种状态，一是准备投递，二是已投递但未确认。队列最大长度？ 声明队列时可以指定最大长度，需要注意的是只限制状态为准备投递的数量，未确认的消息不计算在内。当队列长度超过限制，MQ会根据策略选择丢弃（默认）或者将消息投递进死信队列。</li>
+</ul>
+<h4 id="7-关于死信队列"><a class="markdownIt-Anchor" href="#7-关于死信队列"></a> 7. 关于死信队列？</h4>
+<ul>
+<li>其实更准确的说法是死信交换机，提前声明一个交换机，在声明队列时使用“x-dead-letter-exchange”参数（可指定routKey）将队列绑定到该死信交换机。消息有以下情况之一会成为死信：被reject或者nack，消息超过生存时间，队列长度超过限制。</li>
+</ul>
+<h4 id="8-关于不能路由到队列的消息"><a class="markdownIt-Anchor" href="#8-关于不能路由到队列的消息"></a> 8. 关于不能路由到队列的消息？</h4>
+<ul>
+<li>这个和上面一样，其实不算Queue系列而是Exchange。针对消息无法路由到队列的情况MQ提供了Alternate Exchange处理。声明Exchange时添加args.put(“alternate-exchange”,“my-ae”)参数。即当该交换机存在无法路由的消息时，它将消息发布到AE上，AE把消息路由到绑定在他上面的消息。</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      </br><a href="http://blog.tgyf.com/2020/02/23/Middleware/RabbitMQ/RabbitMQ/" title="RabbitMQ（一） - 配置详解" target="_blank" rel="external">http://blog.tgyf.com/2020/02/23/Middleware/RabbitMQ/RabbitMQ/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      </br>本博客所有文章除特别声明外，均采用 知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议 许可协议。转载请注明出处
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/tgyf" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/sw.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/tgyf" target="_blank"><span class="text-dark">韬光养月巴</span><small class="ml-1x">Java Developer &amp; Designer</small></a></h3>
+        <div>勿在浮沙筑高台,不为繁华易匠心.</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/02/23/Middleware/RabbitMQ/RabbitMQ-DeadletterQueue/" title="RabbitMQ（三） - 死信队列(DeadLetterQueue)"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2020/02/23/Blog/%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hexo%E8%AF%A6%E7%BB%86%E6%AD%A5%E9%AA%A4/" title="搭建个人博客hexo详细步骤"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="http://weibo.com/tgyf" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="https://twitter.com/tgyf" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="https://www.behance.net/tgyf" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
