@@ -1,4 +1,7 @@
 $(function() {
+
+
+
   // bootstrap tooltip
   $('[data-toggle="tooltip"]').tooltip();
 
@@ -12,7 +15,6 @@ $(function() {
       // allowPageScroll: true
     });
   }
-
   $('#collapseToc').on('shown.bs.collapse', function() {
     // do something…
     // slimscroll

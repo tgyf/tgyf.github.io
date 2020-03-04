@@ -17,22 +17,22 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>MQ总结（二）-- MQ里消费到重复数据怎么办？ | 韬光养月巴的技术博客</title>
-  <meta name="description" content="如何保证消息消费时的幂等性？（或：如何保证消息不被重复消费？） 既然是消费消息，那肯定要考虑考虑这三点：  会不会重复消费？ 能不能避免重复消费？ 或者重复消费了也别造成系统异常可以吗？   大概可能会有哪些重复消费  如rabbitmq、rocketmq、kafka，都有可能会出现消费重复消费的问题，正常.因为这问题通常不是mq自己保证的，是给你保证的.然后我们挑一个kafka来举个例子，说说">
+  <title>MQ总结：（五）消息队列里产生积压怎么解决？ | 韬光养月巴的技术博客</title>
+  <meta name="description" content="消息积压常见的问题  如何解决消息队列的延时以及过期失效问题？ 消息队列满了以后该怎么处理？ 有几百万消息持续积压几小时，怎么解决？   消息积压情景再现 假设一个场景，我们现在消费端出故障了，然后大量消息在mq里积压，出现生产事故了.  场景一:大量消息在mq里积压了几个小时了还没解决 几千万条数据在MQ里积压了七八个小时，从下午4点多，积压到了晚上很晚，10点多，11点多 这个时候要不然就是">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MQ总结（二）-- MQ里消费到重复数据怎么办？">
-<meta property="og:url" content="http://blog.tgyf.com/2020/02/24/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9AMQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/index.html">
+<meta property="og:title" content="MQ总结：（五）消息队列里产生积压怎么解决？">
+<meta property="og:url" content="http://blog.tgyf.com/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/index.html">
 <meta property="og:site_name" content="韬光养月巴的技术博客">
-<meta property="og:description" content="如何保证消息消费时的幂等性？（或：如何保证消息不被重复消费？） 既然是消费消息，那肯定要考虑考虑这三点：  会不会重复消费？ 能不能避免重复消费？ 或者重复消费了也别造成系统异常可以吗？   大概可能会有哪些重复消费  如rabbitmq、rocketmq、kafka，都有可能会出现消费重复消费的问题，正常.因为这问题通常不是mq自己保证的，是给你保证的.然后我们挑一个kafka来举个例子，说说">
+<meta property="og:description" content="消息积压常见的问题  如何解决消息队列的延时以及过期失效问题？ 消息队列满了以后该怎么处理？ 有几百万消息持续积压几小时，怎么解决？   消息积压情景再现 假设一个场景，我们现在消费端出故障了，然后大量消息在mq里积压，出现生产事故了.  场景一:大量消息在mq里积压了几个小时了还没解决 几千万条数据在MQ里积压了七八个小时，从下午4点多，积压到了晚上很晚，10点多，11点多 这个时候要不然就是">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-02-24T14:46:26.897Z">
-<meta property="article:modified_time" content="2020-02-24T14:46:26.897Z">
+<meta property="article:published_time" content="2020-03-04T06:18:17.269Z">
+<meta property="article:modified_time" content="2020-03-04T06:18:17.269Z">
 <meta property="article:author" content="韬光养月巴">
-<meta property="article:tag" content="MQ">
 <meta property="article:tag" content="一些思考">
+<meta property="article:tag" content="MQ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="http://blog.tgyf.com/2020/02/24/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9AMQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/index.html">
+  <link rel="canonical" href="http://blog.tgyf.com/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/index.html">
   
     <link rel="alternate" href="/atom.xml" title="韬光养月巴的技术博客" type="application/atom+xml">
   
@@ -186,12 +186,6 @@
     	
         <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
         
-        <li><a href="http://weibo.com/tgyf" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
-        
-        <li><a href="https://twitter.com/tgyf" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
-        
-        <li><a href="https://www.behance.net/tgyf" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
-        
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
     </ul>
@@ -220,7 +214,7 @@
   <div class="widget">
     <h3 class="widget-title">分类</h3>
     <div class="widget-body">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">6</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/RabbitMQ/">RabbitMQ</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2/">应用部署</a><span class="category-list-count">2</span></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">Java集合框架</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/RabbitMQ/">RabbitMQ</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a><span class="category-list-count">11</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2/">应用部署</a><span class="category-list-count">2</span></li></ul>
     </div>
   </div>
 
@@ -230,7 +224,7 @@
   <div class="widget">
     <h3 class="widget-title">标签</h3>
     <div class="widget-body">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQ/" rel="tag">MQ</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag">一些思考</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a><span class="tag-list-count">2</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" rel="tag">Java集合框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LinkedList/" rel="tag">LinkedList</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQ/" rel="tag">MQ</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag">一些思考</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a><span class="tag-list-count">2</span></li></ul>
     </div>
   </div>
 
@@ -240,7 +234,7 @@
   <div class="widget">
     <h3 class="widget-title">标签云</h3>
     <div class="widget-body tagcloud">
-      <a href="/tags/MQ/" style="font-size: 14px;">MQ</a> <a href="/tags/RabbitMQ/" style="font-size: 13.67px;">RabbitMQ</a> <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" style="font-size: 13.33px;">一些思考</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 13px;">博客</a>
+      <a href="/tags/Java/" style="font-size: 13px;">Java</a> <a href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" style="font-size: 13px;">Java集合框架</a> <a href="/tags/LinkedList/" style="font-size: 13px;">LinkedList</a> <a href="/tags/MQ/" style="font-size: 14px;">MQ</a> <a href="/tags/RabbitMQ/" style="font-size: 13.5px;">RabbitMQ</a> <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" style="font-size: 13.75px;">一些思考</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 13.25px;">博客</a>
     </div>
   </div>
 
@@ -249,7 +243,7 @@
   <div class="widget">
     <h3 class="widget-title">归档</h3>
     <div class="widget-body">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">9</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">6</span></li></ul>
     </div>
   </div>
 
@@ -265,58 +259,13 @@
             
             <div class="item-inner">
               <p class="item-category">
-                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/RabbitMQ/">RabbitMQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
               </p>
               <p class="item-title">
-                <a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/" class="title">RabbitMQ（四） - 优先级队列(PriorityQueue)</a>
+                <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E5%85%AD%EF%BC%89%E5%A6%82%E6%9E%9C%E5%86%99%E4%B8%80%E4%B8%AA%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%8C%E5%BA%94%E8%AF%A5%E6%80%8E%E6%A0%B7%E8%80%83%E8%99%91/" class="title">MQ总结：（六）如果写一个消息队列，应该怎样考虑?</a>
               </p>
               <p class="item-date">
-                <time datetime="2020-02-24T15:11:23.490Z" itemprop="datePublished">2020-02-24</time>
-              </p>
-            </div>
-          </li>
-          
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category">
-                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/RabbitMQ/">RabbitMQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-              </p>
-              <p class="item-title">
-                <a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ-Exchang/" class="title">RabbitMQ（二） - 交换器（Exchange）</a>
-              </p>
-              <p class="item-date">
-                <time datetime="2020-02-24T15:11:16.763Z" itemprop="datePublished">2020-02-24</time>
-              </p>
-            </div>
-          </li>
-          
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category">
-                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/RabbitMQ/">RabbitMQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-              </p>
-              <p class="item-title">
-                <a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ-DeadletterQueue/" class="title">RabbitMQ（三） - 死信队列(DeadLetterQueue)</a>
-              </p>
-              <p class="item-date">
-                <time datetime="2020-02-24T15:11:10.610Z" itemprop="datePublished">2020-02-24</time>
-              </p>
-            </div>
-          </li>
-          
-          <li>
-            
-            <div class="item-inner">
-              <p class="item-category">
-                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/RabbitMQ/">RabbitMQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-              </p>
-              <p class="item-title">
-                <a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ/" class="title">RabbitMQ（一） - 配置详解</a>
-              </p>
-              <p class="item-date">
-                <time datetime="2020-02-24T15:10:50.667Z" itemprop="datePublished">2020-02-24</time>
+                <time datetime="2020-03-04T06:45:47.084Z" itemprop="datePublished">2020-03-04</time>
               </p>
             </div>
           </li>
@@ -328,10 +277,55 @@
                 <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
               </p>
               <p class="item-title">
-                <a href="/2020/02/24/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9AMQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/" class="title">MQ总结（二）-- MQ里消费到重复数据怎么办？</a>
+                <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/" class="title">MQ总结：（五）消息队列里产生积压怎么解决？</a>
               </p>
               <p class="item-date">
-                <time datetime="2020-02-24T14:46:26.897Z" itemprop="datePublished">2020-02-24</time>
+                <time datetime="2020-03-04T06:18:17.269Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E5%9B%9B%EF%BC%89%E4%BB%8E%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E6%8B%BF%E5%88%B0%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%89%E9%A1%BA%E5%BA%8F%E6%89%A7%E8%A1%8C%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81/" class="title">MQ总结：（四）从消息队列里拿到的数据按顺序执行怎么保证？</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T05:57:17.413Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%B8%89%EF%BC%89%E5%8F%91%E5%88%B0%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E9%9D%A2%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%8D%E8%A7%81%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E/" class="title">MQ总结：（三）发到消息队列里面的数据不见了怎么办?</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T05:45:36.942Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/MQ/">MQ</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%B8%80%EF%BC%89%E5%A6%82%E6%9E%9CMQ%E6%8C%82%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E/" class="title">MQ总结：（一）如果MQ挂了怎么办?</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T05:08:46.039Z" itemprop="datePublished">2020-03-04</time>
               </p>
             </div>
           </li>
@@ -351,21 +345,21 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#如何保证消息消费时的幂等性或如何保证消息不被重复消费"><span class="toc-number">1.</span> <span class="toc-text"> 如何保证消息消费时的幂等性？（或：如何保证消息不被重复消费？）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#大概可能会有哪些重复消费"><span class="toc-number">1.1.</span> <span class="toc-text"> 大概可能会有哪些重复消费</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#怎么保证消息队列消费的幂等性"><span class="toc-number">1.2.</span> <span class="toc-text"> 怎么保证消息队列消费的幂等性</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#消息积压常见的问题"><span class="toc-number">1.</span> <span class="toc-text"> 消息积压常见的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#消息积压情景再现"><span class="toc-number">2.</span> <span class="toc-text"> 消息积压情景再现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#场景一大量消息在mq里积压了几个小时了还没解决"><span class="toc-number">2.1.</span> <span class="toc-text"> 场景一:大量消息在mq里积压了几个小时了还没解决</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#场景二超过rabbitmq设置过期时间ttl数据直接被清理掉"><span class="toc-number">2.2.</span> <span class="toc-text"> 场景二:超过rabbitmq设置过期时间（TTL）数据直接被清理掉</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#场景三大量消息在mq里积压长时间都没处理掉导致mq快写满了"><span class="toc-number">2.3.</span> <span class="toc-text"> 场景三:大量消息在mq里积压长时间都没处理掉，导致mq快写满了</span></a></li></ol></li></ol>
     </nav>
   </div>
 </aside>
 
 <main class="main" role="main">
   <div class="content">
-  <article id="post-Middleware/MQ总结：MQ里消费到重复数据怎么办" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-Middleware/MQ总结：（五）消息队列里产生积压怎么解决" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
         
   
     <h1 class="article-title" itemprop="name">
-      MQ总结（二）-- MQ里消费到重复数据怎么办？
+      MQ总结：（五）消息队列里产生积压怎么解决？
     </h1>
   
 
@@ -373,8 +367,8 @@
       <div class="article-meta">
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
-	<a href="/2020/02/24/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9AMQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/" class="article-date">
-	  <time datetime="2020-02-24T14:46:26.897Z" itemprop="datePublished">2020-02-24</time>
+	<a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/" class="article-date">
+	  <time datetime="2020-03-04T06:18:17.269Z" itemprop="datePublished">2020-03-04</time>
 	</a>
 </span>
         
@@ -392,49 +386,40 @@
 
         
 
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/02/24/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9AMQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/#comments" class="article-comment-link">评论</a></span>
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/#comments" class="article-comment-link">评论</a></span>
         
       </div>
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h2 id="如何保证消息消费时的幂等性或如何保证消息不被重复消费"><a class="markdownIt-Anchor" href="#如何保证消息消费时的幂等性或如何保证消息不被重复消费"></a> 如何保证消息消费时的幂等性？（或：如何保证消息不被重复消费？）</h2>
-<p>既然是消费消息，那肯定要考虑考虑这三点：</p>
+        <h2 id="消息积压常见的问题"><a class="markdownIt-Anchor" href="#消息积压常见的问题"></a> 消息积压常见的问题</h2>
 <ol>
-<li>会不会重复消费？</li>
-<li>能不能避免重复消费？</li>
-<li>或者重复消费了也别造成系统异常可以吗？</li>
+<li>如何解决消息队列的延时以及过期失效问题？</li>
+<li>消息队列满了以后该怎么处理？</li>
+<li>有几百万消息持续积压几小时，怎么解决？</li>
 </ol>
-<h3 id="大概可能会有哪些重复消费"><a class="markdownIt-Anchor" href="#大概可能会有哪些重复消费"></a> 大概可能会有哪些重复消费</h3>
-<ul>
-<li>如rabbitmq、rocketmq、kafka，都有可能会出现消费重复消费的问题，正常.因为这问题通常不是mq自己保证的，是给你保证的.然后我们挑一个kafka来举个例子，说说怎么重复消费吧.</li>
-</ul>
+<h2 id="消息积压情景再现"><a class="markdownIt-Anchor" href="#消息积压情景再现"></a> 消息积压情景再现</h2>
+<p>假设一个场景，我们现在消费端出故障了，然后大量消息在mq里积压，出现生产事故了.</p>
+<h3 id="场景一大量消息在mq里积压了几个小时了还没解决"><a class="markdownIt-Anchor" href="#场景一大量消息在mq里积压了几个小时了还没解决"></a> 场景一:大量消息在mq里积压了几个小时了还没解决</h3>
+<p>几千万条数据在MQ里积压了七八个小时，从下午4点多，积压到了晚上很晚，10点多，11点多</p>
+<p>这个时候要不然就是修复consumer的问题，让他恢复消费速度，然后傻傻的等待几个小时消费完毕。这个肯定不能在面试的时候说吧。</p>
+<p>一个消费者一秒是1000条，一秒3个消费者是3000条，一分钟是18万条，1000多万条</p>
+<p>所以如果你积压了几百万到上千万的数据，即使消费者恢复了，也需要大概1小时的时间才能恢复过来</p>
+<p>一般这个时候，只能操作临时紧急扩容了，具体操作步骤和思路如下：</p>
 <ol>
-<li>
-<p>kafka实际上有个offset的概念，就是每个消息写进去，都有一个offset，代表他的序号，然后consumer消费了数据之后，每隔一段时间，会把自己消费过的消息的offset提交一下，代表我已经消费过了，下次我要是重启啥的，你就让我继续从上次消费到的offset来继续消费吧.</p>
-</li>
-<li>
-<p>但是凡事总有意外，比如我们之前生产经常遇到的，就是你有时候重启系统，看你怎么重启了，如果碰到点着急的，直接kill进程了，再重启.这会导致consumer有些消息处理了，但是没来得及提交offset，尴尬了.重启之后，少数消息会再次消费一次.</p>
-</li>
+<li>先修复consumer的问题，确保其恢复消费速度，然后将现有cnosumer都停掉</li>
+<li>新建一个topic，partition是原来的10倍，临时建立好原先10倍或者20倍的queue数量</li>
+<li>然后写一个临时的分发数据的consumer程序，这个程序部署上去消费积压的数据，消费之后不做耗时的处理，直接均匀轮询写入临时建立好的10倍数量的queue</li>
+<li>接着临时征用10倍的机器来部署consumer，每一批consumer消费一个临时queue的数据</li>
+<li>这种做法相当于是临时将queue资源和consumer资源扩大10倍，以正常的10倍速度来消费数据</li>
+<li>等快速消费完积压数据之后，得恢复原先部署架构，重新用原先的consumer机器来消费消息</li>
 </ol>
-<p>其实重复消费不可怕，可怕的是你没考虑到重复消费之后，怎么保证幂等性.</p>
-<h3 id="怎么保证消息队列消费的幂等性"><a class="markdownIt-Anchor" href="#怎么保证消息队列消费的幂等性"></a> 怎么保证消息队列消费的幂等性</h3>
-<p>其实还是得结合业务来思考，这里给几个思路：</p>
-<ol>
-<li>
-<p>比如你拿个数据要写库，你先根据主键查一下，如果这数据都有了，你就别插入了，update一下好吧</p>
-</li>
-<li>
-<p>比如你是写redis，那没问题了，反正每次都是set，天然幂等性</p>
-</li>
-<li>
-<p>比如你不是上面两个场景，那做的稍微复杂一点，你需要让生产者发送每条数据的时候，里面加一个全局唯一的id，类似订单id之类的东西，然后你这里消费到了之后，先根据这个id去比如redis里查一下，之前消费过吗？如果没有消费过，你就处理，然后这个id写redis.如果消费过了，那你就别处理了，保证别重复处理相同的消息即可.</p>
-</li>
-<li>
-<p>还有比如基于数据库的唯一键来保证重复数据不会重复插入多条，我们之前线上系统就有这个问题，就是拿到数据的时候，每次重启可能会有重复，因为kafka消费者还没来得及提交offset，重复数据拿到了以后我们插入的时候，因为有唯一键约束了，所以重复数据只会插入报错，不会导致数据库中出现脏数据</p>
-</li>
-</ol>
-<p>如何保证MQ的消费是幂等性的，需要结合具体的业务来看</p>
+<h3 id="场景二超过rabbitmq设置过期时间ttl数据直接被清理掉"><a class="markdownIt-Anchor" href="#场景二超过rabbitmq设置过期时间ttl数据直接被清理掉"></a> 场景二:超过rabbitmq设置过期时间（TTL）数据直接被清理掉</h3>
+<p>这个情况下，就不是说要增加consumer消费积压的消息，因为实际上没啥积压，而是丢了大量的消息。我们可以采取一个方案，就是批量重导，这个我们之前线上也有类似的场景干过。就是大量积压的时候，我们当时就直接丢弃数据了，然后等过了高峰期以后，比如大家一起喝咖啡熬夜到晚上12点以后，用户都睡觉了。</p>
+<p>这个时候我们就开始写程序，将丢失的那批数据，写个临时程序，一点一点的查出来，然后重新灌入mq里面去，把白天丢的数据给他补回来。也只能是这样了。</p>
+<p>假设1万个订单积压在mq里面，没有处理，其中1000个订单都丢了，你只能手动写程序把那1000个订单给查出来，手动发到mq里去再补一次</p>
+<h3 id="场景三大量消息在mq里积压长时间都没处理掉导致mq快写满了"><a class="markdownIt-Anchor" href="#场景三大量消息在mq里积压长时间都没处理掉导致mq快写满了"></a> 场景三:大量消息在mq里积压长时间都没处理掉，导致mq快写满了</h3>
+<p>临时写程序，接入数据来消费，消费一个丢弃一个，都不要了，快速消费掉所有的消息。然后走第二个场景的方案，到了晚上再补数据吧。</p>
 
       
     </div>
@@ -444,7 +429,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      </br><a href="http://blog.tgyf.com/2020/02/24/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9AMQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/" title="MQ总结（二）-- MQ里消费到重复数据怎么办？" target="_blank" rel="external">http://blog.tgyf.com/2020/02/24/Middleware/MQ总结：MQ里消费到重复数据怎么办/</a>
+      </br><a href="http://blog.tgyf.com/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/" title="MQ总结：（五）消息队列里产生积压怎么解决？" target="_blank" rel="external">http://blog.tgyf.com/2020/03/04/Middleware/MQ总结：（五）消息队列里产生积压怎么解决/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -492,12 +477,12 @@
   <ul class="pager pull-left">
     
     <li class="prev">
-      <a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ/" title="RabbitMQ（一） - 配置详解"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+      <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E5%85%AD%EF%BC%89%E5%A6%82%E6%9E%9C%E5%86%99%E4%B8%80%E4%B8%AA%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%8C%E5%BA%94%E8%AF%A5%E6%80%8E%E6%A0%B7%E8%80%83%E8%99%91/" title="MQ总结：（六）如果写一个消息队列，应该怎样考虑?"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
     </li>
     
     
     <li class="next">
-      <a href="/2020/02/24/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%E5%A6%82%E6%9E%9CMQ%E6%8C%82%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E/" title="MQ总结（一）-- 如果MQ挂了怎么办?"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E5%9B%9B%EF%BC%89%E4%BB%8E%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E6%8B%BF%E5%88%B0%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%89%E9%A1%BA%E5%BA%8F%E6%89%A7%E8%A1%8C%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81/" title="MQ总结：（四）从消息队列里拿到的数据按顺序执行怎么保证？"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
@@ -580,12 +565,6 @@
     <ul class="social-links">
     	
         <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
-        
-        <li><a href="http://weibo.com/tgyf" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
-        
-        <li><a href="https://twitter.com/tgyf" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
-        
-        <li><a href="https://www.behance.net/tgyf" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
         
         <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
         
