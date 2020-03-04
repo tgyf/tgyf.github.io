@@ -17,22 +17,16 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>MQ总结：（五）消息队列里产生积压怎么解决？ | 韬光养月巴的技术博客</title>
-  <meta name="description" content="消息积压常见的问题  如何解决消息队列的延时以及过期失效问题？ 消息队列满了以后该怎么处理？ 有几百万消息持续积压几小时，怎么解决？   消息积压情景再现 假设一个场景，我们现在消费端出故障了，然后大量消息在mq里积压，出现生产事故了.  场景一:大量消息在mq里积压了几个小时了还没解决 几千万条数据在MQ里积压了七八个小时，从下午4点多，积压到了晚上很晚，10点多，11点多 这个时候要不然就是">
-<meta property="og:type" content="article">
-<meta property="og:title" content="MQ总结：（五）消息队列里产生积压怎么解决？">
-<meta property="og:url" content="http://blog.tgyf.com/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/index.html">
+  <title>归档: 2020/3 | 韬光养月巴的技术博客</title>
+  <meta property="og:type" content="website">
+<meta property="og:title" content="韬光养月巴的技术博客">
+<meta property="og:url" content="http://blog.tgyf.com/archives/2020/03/page/2/index.html">
 <meta property="og:site_name" content="韬光养月巴的技术博客">
-<meta property="og:description" content="消息积压常见的问题  如何解决消息队列的延时以及过期失效问题？ 消息队列满了以后该怎么处理？ 有几百万消息持续积压几小时，怎么解决？   消息积压情景再现 假设一个场景，我们现在消费端出故障了，然后大量消息在mq里积压，出现生产事故了.  场景一:大量消息在mq里积压了几个小时了还没解决 几千万条数据在MQ里积压了七八个小时，从下午4点多，积压到了晚上很晚，10点多，11点多 这个时候要不然就是">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-03-04T06:18:17.269Z">
-<meta property="article:modified_time" content="2020-03-04T06:18:17.269Z">
 <meta property="article:author" content="韬光养月巴">
-<meta property="article:tag" content="一些思考">
-<meta property="article:tag" content="MQ">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="http://blog.tgyf.com/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/index.html">
+  <link rel="canonical" href="http://blog.tgyf.com/archives/2020/03/page/2/index.html">
   
     <link rel="alternate" href="/atom.xml" title="韬光养月巴的技术博客" type="application/atom+xml">
   
@@ -341,222 +335,75 @@
 
   
   
-<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar" aria-expanded="true">
-  <div class="slimContent">
-    <nav id="toc" class="article-toc">
-      <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#消息积压常见的问题"><span class="toc-number">1.</span> <span class="toc-text"> 消息积压常见的问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#消息积压情景再现"><span class="toc-number">2.</span> <span class="toc-text"> 消息积压情景再现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#场景一大量消息在mq里积压了几个小时了还没解决"><span class="toc-number">2.1.</span> <span class="toc-text"> 场景一:大量消息在mq里积压了几个小时了还没解决</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#场景二超过rabbitmq设置过期时间ttl数据直接被清理掉"><span class="toc-number">2.2.</span> <span class="toc-text"> 场景二:超过rabbitmq设置过期时间（TTL）数据直接被清理掉</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#场景三大量消息在mq里积压长时间都没处理掉导致mq快写满了"><span class="toc-number">2.3.</span> <span class="toc-text"> 场景三:大量消息在mq里积压长时间都没处理掉，导致mq快写满了</span></a></li></ol></li></ol>
-    </nav>
-  </div>
-</aside>
-
 <main class="main" role="main">
-  <div class="content">
-  <article id="post-Middleware/MQ总结：（五）消息队列里产生积压怎么解决" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  	<article class="content article article-archives article-type-list" itemscope="">
+	    <header class="article-header">
+	      <h1 itemprop="title">归档: 2020/3</h1>
+	      <p class="text-muted">共 1 篇文章</p>
+	    </header>
+	    <div class="article-body">
+	      
+  
+  
     
-    <div class="article-header">
+    
       
-        
-  
-    <h1 class="article-title" itemprop="name">
-      MQ总结：（五）消息队列里产生积压怎么解决？
-    </h1>
-  
-
       
-      <div class="article-meta">
-        <span class="article-date">
-    <i class="icon icon-calendar-check"></i>
-	<a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/" class="article-date">
-	  <time datetime="2020-03-04T06:18:17.269Z" itemprop="datePublished">2020-03-04</time>
-	</a>
-</span>
-        
-  <span class="article-category">
-    <i class="icon icon-folder"></i>
-    <a class="article-category-link" href="/categories/MQ/">MQ</a>►<a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-  </span>
-
-        
-  <span class="article-tag">
-    <i class="icon icon-tags"></i>
-	<a class="article-tag-link" href="/tags/MQ/" rel="tag">MQ</a>, <a class="article-tag-link" href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag">一些思考</a>
-  </span>
-
-
-        
-
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/#comments" class="article-comment-link">评论</a></span>
-        
-      </div>
-    </div>
-    <div class="article-entry marked-body" itemprop="articleBody">
-      
-        <h2 id="消息积压常见的问题"><a class="markdownIt-Anchor" href="#消息积压常见的问题"></a> 消息积压常见的问题</h2>
-<ol>
-<li>如何解决消息队列的延时以及过期失效问题？</li>
-<li>消息队列满了以后该怎么处理？</li>
-<li>有几百万消息持续积压几小时，怎么解决？</li>
-</ol>
-<h2 id="消息积压情景再现"><a class="markdownIt-Anchor" href="#消息积压情景再现"></a> 消息积压情景再现</h2>
-<p>假设一个场景，我们现在消费端出故障了，然后大量消息在mq里积压，出现生产事故了.</p>
-<h3 id="场景一大量消息在mq里积压了几个小时了还没解决"><a class="markdownIt-Anchor" href="#场景一大量消息在mq里积压了几个小时了还没解决"></a> 场景一:大量消息在mq里积压了几个小时了还没解决</h3>
-<p>几千万条数据在MQ里积压了七八个小时，从下午4点多，积压到了晚上很晚，10点多，11点多</p>
-<p>这个时候要不然就是修复consumer的问题，让他恢复消费速度，然后傻傻的等待几个小时消费完毕。这个肯定不能在面试的时候说吧。</p>
-<p>一个消费者一秒是1000条，一秒3个消费者是3000条，一分钟是18万条，1000多万条</p>
-<p>所以如果你积压了几百万到上千万的数据，即使消费者恢复了，也需要大概1小时的时间才能恢复过来</p>
-<p>一般这个时候，只能操作临时紧急扩容了，具体操作步骤和思路如下：</p>
-<ol>
-<li>先修复consumer的问题，确保其恢复消费速度，然后将现有cnosumer都停掉</li>
-<li>新建一个topic，partition是原来的10倍，临时建立好原先10倍或者20倍的queue数量</li>
-<li>然后写一个临时的分发数据的consumer程序，这个程序部署上去消费积压的数据，消费之后不做耗时的处理，直接均匀轮询写入临时建立好的10倍数量的queue</li>
-<li>接着临时征用10倍的机器来部署consumer，每一批consumer消费一个临时queue的数据</li>
-<li>这种做法相当于是临时将queue资源和consumer资源扩大10倍，以正常的10倍速度来消费数据</li>
-<li>等快速消费完积压数据之后，得恢复原先部署架构，重新用原先的consumer机器来消费消息</li>
-</ol>
-<h3 id="场景二超过rabbitmq设置过期时间ttl数据直接被清理掉"><a class="markdownIt-Anchor" href="#场景二超过rabbitmq设置过期时间ttl数据直接被清理掉"></a> 场景二:超过rabbitmq设置过期时间（TTL）数据直接被清理掉</h3>
-<p>这个情况下，就不是说要增加consumer消费积压的消息，因为实际上没啥积压，而是丢了大量的消息。我们可以采取一个方案，就是批量重导，这个我们之前线上也有类似的场景干过。就是大量积压的时候，我们当时就直接丢弃数据了，然后等过了高峰期以后，比如大家一起喝咖啡熬夜到晚上12点以后，用户都睡觉了。</p>
-<p>这个时候我们就开始写程序，将丢失的那批数据，写个临时程序，一点一点的查出来，然后重新灌入mq里面去，把白天丢的数据给他补回来。也只能是这样了。</p>
-<p>假设1万个订单积压在mq里面，没有处理，其中1000个订单都丢了，你只能手动写程序把那1000个订单给查出来，手动发到mq里去再补一次</p>
-<h3 id="场景三大量消息在mq里积压长时间都没处理掉导致mq快写满了"><a class="markdownIt-Anchor" href="#场景三大量消息在mq里积压长时间都没处理掉导致mq快写满了"></a> 场景三:大量消息在mq里积压长时间都没处理掉，导致mq快写满了</h3>
-<p>临时写程序，接入数据来消费，消费一个丢弃一个，都不要了，快速消费掉所有的消息。然后走第二个场景的方案，到了晚上再补数据吧。</p>
-
-      
-    </div>
-    <div class="article-footer">
-      <blockquote class="mt-2x">
-  <ul class="post-copyright list-unstyled">
-    
-    <li class="post-copyright-link hidden-xs">
-      <strong>本文链接：</strong>
-      </br><a href="http://blog.tgyf.com/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%94%EF%BC%89%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E4%BA%A7%E7%94%9F%E7%A7%AF%E5%8E%8B%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3/" title="MQ总结：（五）消息队列里产生积压怎么解决？" target="_blank" rel="external">http://blog.tgyf.com/2020/03/04/Middleware/MQ总结：（五）消息队列里产生积压怎么解决/</a>
-    </li>
-    
-    <li class="post-copyright-license">
-      <strong>版权声明： </strong>
-      </br>本博客所有文章除特别声明外，均采用 知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议 许可协议。转载请注明出处
-    </li>
-  </ul>
-</blockquote>
-
-
-<div class="panel panel-default panel-badger">
-  <div class="panel-body">
-    <figure class="media">
-      <div class="media-left">
-        <a href="https://github.com/tgyf" target="_blank" class="img-burn thumb-sm visible-lg">
-          <img src="/images/sw.jpg" class="img-rounded w-full" alt="">
-        </a>
-      </div>
-      <div class="media-body">
-        <h3 class="media-heading"><a href="https://github.com/tgyf" target="_blank"><span class="text-dark">韬光养月巴</span><small class="ml-1x">Java Developer &amp; Designer</small></a></h3>
-        <div>勿在浮沙筑高台,不为繁华易匠心.</div>
-      </div>
-    </figure>
-  </div>
-</div>
-
-
-    </div>
-  </article>
-  
-    
-  <section id="comments">
-  	
-      <div id="vcomments"></div>
-    
-  </section>
-
-
-  
-</div>
-
-  <nav class="bar bar-footer clearfix" data-stick-bottom>
-  <div class="bar-inner">
-  
-  <ul class="pager pull-left">
-    
-    <li class="prev">
-      <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E5%85%AD%EF%BC%89%E5%A6%82%E6%9E%9C%E5%86%99%E4%B8%80%E4%B8%AA%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%8C%E5%BA%94%E8%AF%A5%E6%80%8E%E6%A0%B7%E8%80%83%E8%99%91/" title="MQ总结：（六）如果写一个消息队列，应该怎样考虑?"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
-    </li>
-    
-    
-    <li class="next">
-      <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E5%9B%9B%EF%BC%89%E4%BB%8E%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E9%87%8C%E6%8B%BF%E5%88%B0%E7%9A%84%E6%95%B0%E6%8D%AE%E6%8C%89%E9%A1%BA%E5%BA%8F%E6%89%A7%E8%A1%8C%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81/" title="MQ总结：（四）从消息队列里拿到的数据按顺序执行怎么保证？"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
-    </li>
-    
-    
-    <li class="toggle-toc">
-      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">
-        <span>[&nbsp;</span><span>文章目录</span>
-        <i class="text-collapsed icon icon-anchor"></i>
-        <i class="text-in icon icon-close"></i>
-        <span>]</span>
-      </a>
-    </li>
-    
-  </ul>
-  
-  
-  <!-- Button trigger modal -->
-  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
-  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
-    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
-  </div> -->
-  
-  
-  <div class="bar-right">
-    
-    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
-    
-  </div>
-  </div>
-</nav>
-  
-<!-- Modal -->
-<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content donate">
-      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <div class="modal-body">
-        <div class="donate-box">
-          <div class="donate-head">
-            <p>感谢您的支持，我会继续努力的!</p>
-          </div>
-          <div class="tab-content">
-            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
-              <div class="donate-payimg">
-                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
-              </div>
-              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
-              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
-            </div>
-            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
-              <div class="donate-payimg">
-                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
-              </div>
-              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
-              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
-            </div>
-          </div>
-          <div class="donate-footer">
-            <ul class="nav nav-tabs nav-justified" role="tablist">
-              <li role="presentation" class="active">
-                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
-              </li>
-              <li role="presentation" class="">
-                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
-              </li>
-            </ul>
-          </div>
+      <section class="panel panel-default b-no">
+        <div class="panel-heading" role="tab">
+          <h3 class="panel-title">
+            <a data-toggle="collapse" href="#collapse2020" aria-expanded="true">
+              <i class="icon icon-calendar-plus text-active"></i><i class="icon icon-calendar-minus text"></i>
+              2020
+            </a>
+            <!-- <a href="/archives/2020" class="archive-year">2020</a> -->
+          </h3>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
+        <div id="collapse2020" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading2020">
+        <div class="panel-body">
+          <div class="collection">
+    
+    
+<a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%8C%EF%BC%89MQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/" class="collection-item" target="_blank" itemprop="url">
+  <time datetime="2020-03-04T01:56:02.060Z" itemprop="datePublished">2020-03-04</time>
+  <span>&nbsp;&nbsp;&nbsp;</span> MQ总结：（二）MQ里消费到重复数据怎么办？
+</a>
 
 
+  
+  
+    </div></div></div></section>
+  
 
+	    </div>
+  	</article>
+  	
+    
+    <nav class="bar bar-footer clearfix" data-stick-bottom>
+        <div class="bar-inner">
+        <ul class="pager pull-left">
+            
+            <li class="prev">
+                <a href="/archives/2020/03/">
+                    <i class="icon icon-angle-left"></i>
+                    上一页
+                </a>
+            </li>
+            
+            
+            <li class="next disabled">
+                <a href="javascript:;">
+                    下一页
+                    <i class="icon icon-angle-right"></i>                    
+                </a>
+            </li>
+            
+        </ul>
+        <div class="total-article bar-right">Page 2 of 2</div>
+        </div>
+    </nav>
+    
+ 	
 </main>
 
   <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
@@ -611,37 +458,6 @@ window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
 
 
 
-
-   
-
-
-
-
-   
-    
-  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/valine"></script>
-  <script type="text/javascript">
-  var GUEST = ['nick', 'mail', 'link'];
-  var meta = 'nick,mail,link';
-  meta = meta.split(',').filter(function(item) {
-    return GUEST.indexOf(item) > -1;
-  });
-  new Valine({
-    el: '#vcomments',
-    verify: false,
-    notify: false,
-    appId: '',
-    appKey: '',
-    placeholder: 'Just go go',
-    avatar: 'mm',
-    meta: meta,
-    pageSize: '10' || 10,
-    visitor: false
-  });
-  </script>
-
-     
 
 
 
