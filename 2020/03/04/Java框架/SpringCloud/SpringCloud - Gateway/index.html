@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>SpringCloud - Gateway | 韬光养月巴的技术博客</title>
+  <meta name="description" content="Spring Cloud Gateway  Gateway是spring cloud 推出的新的网关路由，它关注于安全性，网关路由，限流控制等，是第二代网关路由器。 Spring Cloud Gateway使用的是Spring Boot和Spring Webflux提供的Netty底层环境，不能和传统的Servlet容器一起使用，也不能打包成一个WAR包。 引入了依赖默认即开启gateway了，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringCloud - Gateway">
+<meta property="og:url" content="http://blog.tgyf.com/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/index.html">
+<meta property="og:site_name" content="韬光养月巴的技术博客">
+<meta property="og:description" content="Spring Cloud Gateway  Gateway是spring cloud 推出的新的网关路由，它关注于安全性，网关路由，限流控制等，是第二代网关路由器。 Spring Cloud Gateway使用的是Spring Boot和Spring Webflux提供的Netty底层环境，不能和传统的Servlet容器一起使用，也不能打包成一个WAR包。 引入了依赖默认即开启gateway了，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.tgyf.com/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/2019093001.jpg">
+<meta property="og:image" content="http://blog.tgyf.com/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/20181125155612444.png">
+<meta property="article:published_time" content="2020-03-04T15:06:48.311Z">
+<meta property="article:modified_time" content="2020-03-04T15:06:48.311Z">
+<meta property="article:author" content="韬光养月巴">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="SpringCloud">
+<meta property="article:tag" content="Gateway">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.tgyf.com/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/2019093001.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://blog.tgyf.com/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="韬光养月巴的技术博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/tgyf" target="_blank">
+          <img class="img-circle img-rotate" src="/images/sw.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">韬光养月巴</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Chengdu, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎访问韬光养月巴的技术博客</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/JVM/">JVM</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">Java集合框架</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%A1%86%E6%9E%B6/">Java框架</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/RabbitMQ/">RabbitMQ</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SpringCloud/">SpringCloud</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a><span class="category-list-count">11</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2/">应用部署</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Eureka/" rel="tag">Eureka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gateway/" rel="tag">Gateway</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" rel="tag">Java集合框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LinkedList/" rel="tag">LinkedList</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQ/" rel="tag">MQ</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag">一些思考</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a><span class="tag-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Eureka/" style="font-size: 13px;">Eureka</a> <a href="/tags/Gateway/" style="font-size: 13px;">Gateway</a> <a href="/tags/JVM/" style="font-size: 13.25px;">JVM</a> <a href="/tags/Java/" style="font-size: 13.75px;">Java</a> <a href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" style="font-size: 13px;">Java集合框架</a> <a href="/tags/LinkedList/" style="font-size: 13px;">LinkedList</a> <a href="/tags/MQ/" style="font-size: 14px;">MQ</a> <a href="/tags/RabbitMQ/" style="font-size: 13.5px;">RabbitMQ</a> <a href="/tags/SpringCloud/" style="font-size: 13.5px;">SpringCloud</a> <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" style="font-size: 13.75px;">一些思考</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 13.25px;">博客</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">6</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Java%E6%A1%86%E6%9E%B6/">Java框架</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/SpringCloud/">SpringCloud</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/" class="title">SpringCloud - Gateway</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T15:06:48.311Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Java%E6%A1%86%E6%9E%B6/">Java框架</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/SpringCloud/">SpringCloud</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Eureka/" class="title">SpringCloud - Eureka</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T14:56:55.247Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Java%E6%A1%86%E6%9E%B6/">Java框架</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/SpringCloud/">SpringCloud</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9D%82%E8%B0%88/" class="title">SpringCloud微服务杂谈</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T14:49:31.311Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/JVM/">JVM</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Java%E8%99%9A%E6%8B%9F%E6%9C%BA/JVM%E8%B0%83%E4%BC%98%E5%88%B0%E5%BA%95%E8%B0%83%E4%BB%80%E4%B9%88%E6%80%8E%E4%B9%88%E8%B0%83/" class="title">JVM调优到底调什么怎么调?</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T14:32:18.344Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/JVM/">JVM</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/04/Java%E8%99%9A%E6%8B%9F%E6%9C%BA/JVM%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%8F%8A%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" class="title">JVM内存模型及垃圾回收</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-04T12:08:31.852Z" itemprop="datePublished">2020-03-04</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar" aria-expanded="true">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#spring-cloud-gateway"><span class="toc-number">1.</span> <span class="toc-text"> Spring Cloud Gateway</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一工作原理"><span class="toc-number">1.1.</span> <span class="toc-text"> (一)工作原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二谓词工厂"><span class="toc-number">1.2.</span> <span class="toc-text"> (二)谓词工厂</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#21-datetime"><span class="toc-number">1.2.1.</span> <span class="toc-text"> 2.1 Datetime</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#22-cookie"><span class="toc-number">1.2.2.</span> <span class="toc-text"> 2.2 Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#23-header"><span class="toc-number">1.2.3.</span> <span class="toc-text"> 2.3 Header</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#24-host"><span class="toc-number">1.2.4.</span> <span class="toc-text"> 2.4 Host</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-method"><span class="toc-number">1.2.5.</span> <span class="toc-text"> 2.5 Method</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#26-path"><span class="toc-number">1.2.6.</span> <span class="toc-text"> 2.6 Path</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#27-query"><span class="toc-number">1.2.7.</span> <span class="toc-text"> 2.7 Query</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#28-remoteaddr"><span class="toc-number">1.2.8.</span> <span class="toc-text"> 2.8 RemoteAddr</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#29-weigth"><span class="toc-number">1.2.9.</span> <span class="toc-text"> 2.9 Weigth</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二过滤器工厂"><span class="toc-number">1.3.</span> <span class="toc-text"> (二)过滤器工厂</span></a></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Java框架/SpringCloud/SpringCloud - Gateway" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      SpringCloud - Gateway
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/" class="article-date">
+	  <time datetime="2020-03-04T15:06:48.311Z" itemprop="datePublished">2020-03-04</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Java%E6%A1%86%E6%9E%B6/">Java框架</a>►<a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/Gateway/" rel="tag">Gateway</a>, <a class="article-tag-link" href="/tags/Java/" rel="tag">Java</a>, <a class="article-tag-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="spring-cloud-gateway"><a class="markdownIt-Anchor" href="#spring-cloud-gateway"></a> Spring Cloud Gateway</h1>
+<ul>
+<li>Gateway是spring cloud 推出的新的网关路由，它关注于安全性，网关路由，限流控制等，是第二代网关路由器。</li>
+<li>Spring Cloud Gateway使用的是Spring Boot和Spring Webflux提供的Netty底层环境，不能和传统的Servlet容器一起使用，也不能打包成一个WAR包。</li>
+<li>引入了依赖默认即开启gateway了，如果暂时不想使用这个功能，这可以配置spring.cloud.gateway.enabled=false即可。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">	&lt;groupId&gt;org.springframework.cloud&lt;&#x2F;groupId&gt;</span><br><span class="line">	&lt;artifactId&gt;spring-cloud-starter-gateway&lt;&#x2F;artifactId&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="一工作原理"><a class="markdownIt-Anchor" href="#一工作原理"></a> (一)工作原理</h2>
+<ul>
+<li>当客户端发送请求到Spring Cloud Gateway，Gateway Handler Mapping会匹配Route映射分发到Gateway Web Handler。handler会将请求经过一系列的filter处理，代理请求前，会执行左右的”pre” filter逻辑，代理请求后，会执行所有”post” filter逻辑。</li>
+</ul>
+<img src="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/2019093001.jpg" class title="工作原理">
+<h2 id="二谓词工厂"><a class="markdownIt-Anchor" href="#二谓词工厂"></a> (二)谓词工厂</h2>
+<p>建议仔细阅读:<br>
+<a href="https://cloud.spring.io/spring-cloud-static/Greenwich.SR2/single/spring-cloud.html#gateway-request-predicates-factories" target="_blank" rel="noopener">官方文档1</a><br>
+<a href="https://cloud.spring.io/spring-cloud-gateway/reference/html/#gateway-request-predicates-factories" target="_blank" rel="noopener">官方文档2</a></p>
+<img src="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/20181125155612444.png" class title="谓词工厂">
+<h3 id="21-datetime"><a class="markdownIt-Anchor" href="#21-datetime"></a> 2.1 Datetime</h3>
+<p>接受一个时间参数，满足时间条件后路由</p>
+<ul>
+<li>技巧：时间可使用 System.out.println(ZonedDateTime.now()); 打印，然后即可看到时区。例如：2019-09-29T16:50:42.579+08:00[Asia/Shanghai]</li>
+<li>时间格式的相关逻辑：
+<ul>
+<li>默认时间格式：org.springframework.format.support.DefaultFormattingConversionService#addDefaultFormatters</li>
+<li>时间格式注册：org.springframework.format.datetime.standard.DateTimeFormatterRegistrar#regi</li>
+</ul>
+</li>
+</ul>
+<p>Before Route Predicate Factory:使用时间作为匹配规则，只要当前时间小于设定时间，路由才会匹配请求。</p>
+<ul>
+<li>id:表示路由名称</li>
+<li>uri:路由转发的地址</li>
+<li>predicates:断言规则</li>
+<li>Before:表示当前时间小于设定时间</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">     cloud:</span><br><span class="line">       gateway:</span><br><span class="line">         routes:</span><br><span class="line">           - id: before_route</span><br><span class="line">             uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">             predicates:</span><br><span class="line">               # 当且仅当请求时的时间Before配置的时间时，才会转发到用户微服务</span><br><span class="line">               # 目前配置不会进该路由配置，所以返回404</span><br><span class="line">               # 将时间改成 &gt; now的时间，则访问localhost:8040&#x2F;** -&gt; user-center&#x2F;**</span><br><span class="line">               # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">               - Before&#x3D;2019-09-30T17:42:47.789-07:00[America&#x2F;Denver]</span><br></pre></td></tr></table></figure>
+<p>After Route Predicate Factory:使用的是时间作为匹配规则，只要当前时间大于设定时间，路由才会匹配请求</p>
+<ul>
+<li>id:表示路由名称</li>
+<li>uri:路由转发的地址</li>
+<li>predicates:断言规则</li>
+<li>After:表示大于设定时间</li>
+</ul>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: after_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当请求时的时间After配置的时间时，才会转发到用户微服务</span><br><span class="line">            # 目前配置不会进该路由配置，所以返回404</span><br><span class="line">            # 将时间改成 &lt; now的时间，则访问localhost:8040&#x2F;** -&gt; user-center&#x2F;**</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">            - After&#x3D;2030-01-20T17:42:47.789-07:00[America&#x2F;Denver]</span><br></pre></td></tr></table></figure>
+<p>Between Route Predicate Factory:使用两个时间作为匹配规则，只要当前时间大于第一个设定时间，并小于第二个设定时间，路由才会匹配请求。</p>
+<ul>
+<li>id:表示路由名称</li>
+<li>uri:路由转发的地址</li>
+<li>predicates:断言规则</li>
+<li>Between:表示大于第一个设定时间并小于第二个设定时间</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: between_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当请求时的时间Between配置的时间时，才会转发到用户微服务</span><br><span class="line">            # 因此，访问localhost:8040&#x2F;** -&gt; user-center&#x2F;**</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">            - Between&#x3D;2019-01-20T17:42:47.789-07:00[America&#x2F;Denver], 2027-01-21T17:42:47.789-07:00[America&#x2F;Denver]</span><br></pre></td></tr></table></figure>
+<h3 id="22-cookie"><a class="markdownIt-Anchor" href="#22-cookie"></a> 2.2 Cookie</h3>
+<p>Cookie Route Predicate Factory:使用的是cookie名字和正则表达式的value作为两个输入参数，请求的cookie需要匹配cookie名和符合其中value的正则。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: cookie_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当带有名为somecookie，并且值符合正则ch.p的Cookie时，才会转发到用户微服务</span><br><span class="line">            # 如Cookie满足条件，则访问http:&#x2F;&#x2F;localhost:8040&#x2F;** -&gt; user-center&#x2F;**</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">            - Cookie&#x3D;somecookie, ch.p</span><br></pre></td></tr></table></figure>
+<h3 id="23-header"><a class="markdownIt-Anchor" href="#23-header"></a> 2.3 Header</h3>
+<p>Header Route Predicate Factory:使用的是两个参数，一个header的name，一个是正则匹配的value。</p>
+<ul>
+<li>请求头 header中带 X-Request-Id，且值为数字，允许路由。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: header_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当带有名为X-Request-Id，并且值符合正则\d+的Header时，才会转发到用户微服务</span><br><span class="line">            # 如Header满足条件，则访问http:&#x2F;&#x2F;localhost:8040&#x2F;** -&gt; user-center&#x2F;**</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">            - Header&#x3D;X-Request-Id, \d+</span><br></pre></td></tr></table></figure>
+<h3 id="24-host"><a class="markdownIt-Anchor" href="#24-host"></a> 2.4 Host</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: host_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当名为Host的Header符合**.somehost.org或**.anotherhost.org时，才会转发用户微服务</span><br><span class="line">            # 如Host满足条件，则访问http:&#x2F;&#x2F;localhost:8040&#x2F;** -&gt; user-center&#x2F;**</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">            - Host&#x3D;**.somehost.org,**.anotherhost.org</span><br></pre></td></tr></table></figure>
+<h3 id="25-method"><a class="markdownIt-Anchor" href="#25-method"></a> 2.5 Method</h3>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: method_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当HTTP请求方法是GET时，才会转发用户微服务</span><br><span class="line">            # 如请求方法满足条件，访问http:&#x2F;&#x2F;localhost:8040&#x2F;** -&gt; user-center&#x2F;**</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">            - Method&#x3D;GET</span><br></pre></td></tr></table></figure>
+<h3 id="26-path"><a class="markdownIt-Anchor" href="#26-path"></a> 2.6 Path</h3>
+<ul>
+<li>官方文档：<a href="https://cloud.spring.io/spring-cloud-gateway/reference/html/#path-route-predicate-factory" target="_blank" rel="noopener">segment小技巧</a></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: path_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当访问路径是&#x2F;users&#x2F;*或者&#x2F;some-path&#x2F;**，才会转发用户微服务</span><br><span class="line">            # segment是一个特殊的占位符，单层路径匹配</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center&#x2F;users&#x2F;1</span><br><span class="line">            - Path&#x3D;&#x2F;users&#x2F;&#123;segment&#125;,&#x2F;some-path&#x2F;**</span><br></pre></td></tr></table></figure>
+<h3 id="27-query"><a class="markdownIt-Anchor" href="#27-query"></a> 2.7 Query</h3>
+<p>示例1：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: query_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当请求带有baz的参数，才会转发到用户微服务</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1?baz&#x3D;xx -&gt; user-center的&#x2F;users&#x2F;1</span><br><span class="line">            - Query&#x3D;baz</span><br></pre></td></tr></table></figure>
+<p>示例2：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: query_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当请求带有名为foo的参数，且参数值符合正则ba.，才会转发到用户微服务</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1?baz&#x3D;baz -&gt; user-center的&#x2F;users&#x2F;1?baz&#x3D;baz</span><br><span class="line">            - Query&#x3D;foo, ba.</span><br></pre></td></tr></table></figure>
+<h3 id="28-remoteaddr"><a class="markdownIt-Anchor" href="#28-remoteaddr"></a> 2.8 RemoteAddr</h3>
+<ul>
+<li>官方文档：<a href="https://cloud.spring.io/spring-cloud-gateway/reference/html/#modifying-the-way-remote-addresses-are-resolved" target="_blank" rel="noopener">代理的ip小技巧</a></li>
+<li>XForwardedRemoteAddressResolver::trustAll得到的RemoteAddressResolver总是获取X-Forwarded-For的第一个ip地址作为remote address，这种方式就比较容易被伪装的请求欺骗，模拟请求很容易通过设置初始的X-Forwarded-For头信息，就可以欺骗到gateway。</li>
+<li>XForwardedRemoteAddressResolver::maxTrustedIndex得到的RemoteAddressResolver则会在X-Forwarded-For信息里面，从右到左选择信任最多maxTrustedIndex个ip，因为X-Forwarded-For是越往右是越接近gateway的代理机器ip，所以是越往右的ip，信任度是越高的。<br>
+那么如果前面只是挡了一层Nginx的话，如果只需要Nginx前面客户端的ip，则maxTrustedIndex取1，就可以比较安全地获取真实客户端ip。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  cloud:</span><br><span class="line">    gateway:</span><br><span class="line">      routes:</span><br><span class="line">        - id: remoteaddr_route</span><br><span class="line">          uri: lb:&#x2F;&#x2F;user-center</span><br><span class="line">          predicates:</span><br><span class="line">            # 当且仅当请求IP是192.168.1.1&#x2F;24网段，例如192.168.1.10，才会转发到用户微服务</span><br><span class="line">            # eg. 访问http:&#x2F;&#x2F;localhost:8040&#x2F;users&#x2F;1 -&gt; user-center的&#x2F;users&#x2F;1</span><br><span class="line">            - RemoteAddr&#x3D;192.168.1.1&#x2F;24</span><br></pre></td></tr></table></figure>
+<h3 id="29-weigth"><a class="markdownIt-Anchor" href="#29-weigth"></a> 2.9 Weigth</h3>
+<p>Weight Route Predicate Factory:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="二过滤器工厂"><a class="markdownIt-Anchor" href="#二过滤器工厂"></a> (二)过滤器工厂</h2>
+<ul>
+<li>Route Predicate 决定路由到哪个路径，那么过滤器就是允许修改HTTP请求的一些属性。spring cloud 内置了一部分过滤器，也可以自定义过滤器<br>
+3.1. AddRequestHeader GatewayFilter Factory<br>
+3.2. AddRequestParameter GatewayFilter Factory<br>
+3.3. AddResponseHeader GatewayFilter Factory<br>
+3.4. DedupeResponseHeader GatewayFilter Factory<br>
+3.5. Hystrix GatewayFilter Factory<br>
+3.6. FallbackHeaders GatewayFilter Factory<br>
+3.7. MapRequestHeader GatewayFilter Factory<br>
+3.8. PrefixPath GatewayFilter Factory<br>
+3.9. PreserveHostHeader GatewayFilter Factory<br>
+3.10. RequestRateLimiter GatewayFilter Factory<br>
+3.11. RedirectTo GatewayFilter Factory<br>
+3.12. RemoveHopByHopHeadersFilter GatewayFilter Factory<br>
+3.13. RemoveRequestHeader GatewayFilter Factory<br>
+3.14. RemoveResponseHeader GatewayFilter Factory<br>
+3.15. RemoveRequestParameter GatewayFilter Factory<br>
+3.16. RewritePath GatewayFilter Factory<br>
+3.17. RewriteLocationResponseHeader GatewayFilter Factory<br>
+3.18. RewriteResponseHeader GatewayFilter Factory<br>
+3.19. SaveSession GatewayFilter Factory<br>
+3.20. SecureHeaders GatewayFilter Factory<br>
+3.21. SetPath GatewayFilter Factory<br>
+3.22. SetRequestHeader GatewayFilter Factory<br>
+3.23. SetResponseHeader GatewayFilter Factory<br>
+3.24. SetStatus GatewayFilter Factory<br>
+3.25. StripPrefix GatewayFilter Factory<br>
+3.26. Retry GatewayFilter Factory<br>
+3.27. RequestSize GatewayFilter Factory<br>
+3.28. Modify Request Body GatewayFilter Factory<br>
+3.29. Modify Response Body GatewayFilter Factory<br>
+3.30. Default Filters</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      </br><a href="http://blog.tgyf.com/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Gateway/" title="SpringCloud - Gateway" target="_blank" rel="external">http://blog.tgyf.com/2020/03/04/Java框架/SpringCloud/SpringCloud - Gateway/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      </br>本博客所有文章除特别声明外，均采用 知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议 许可协议。转载请注明出处
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/tgyf" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/sw.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/tgyf" target="_blank"><span class="text-dark">韬光养月巴</span><small class="ml-1x">Java Developer &amp; Designer</small></a></h3>
+        <div>勿在浮沙筑高台,不为繁华易匠心.</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2020/03/04/Java%E6%A1%86%E6%9E%B6/SpringCloud/SpringCloud%20-%20Eureka/" title="SpringCloud - Eureka"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
