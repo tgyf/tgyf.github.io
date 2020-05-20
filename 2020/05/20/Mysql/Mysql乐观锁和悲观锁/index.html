@@ -17,22 +17,22 @@
   <meta http-equiv="window-target" content="_top" />
   
   
-  <title>RabbitMQ（四） - 优先级队列(PriorityQueue) | 韬光养月巴的技术博客</title>
-  <meta name="description" content="RabbitMQ - 优先级队列(PriorityQueue) 在RabbitMQ中使用优先级特性需要的版本为3.5+。 使用优先级特性只需做两件事情：     1. 将队列声明为优先级队列，即在创建队列的时候添加参数 x-max-priority 以指定最大的优先级，值为0-255（整数）。     2. 为优先级消息添加优先级。   注意:没有指定优先级的消息会将优先级以0对待。 对于超过优">
+  <title>Mysql乐观锁和悲观锁 | 韬光养月巴的技术博客</title>
+  <meta name="description" content="转载: https:&#x2F;&#x2F;www.cnblogs.com&#x2F;zhiqian-ali&#x2F;p&#x2F;6200874.html  悲观锁（Pessimistic Lock）  悲观锁的特点是先获取锁，再进行业务操作，即“悲观”的认为获取锁是非常有可能失败的，因此要先确保获取锁成功再进行业务操作。通常所说的“一锁二查三更新”即指的是使用悲观锁。通常来讲在数据库上的悲观锁需要数据库本身提供支持，即通过常用的select">
 <meta property="og:type" content="article">
-<meta property="og:title" content="RabbitMQ（四） - 优先级队列(PriorityQueue)">
-<meta property="og:url" content="http://blog.tgyf.com/2020/02/24/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/index.html">
+<meta property="og:title" content="Mysql乐观锁和悲观锁">
+<meta property="og:url" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/index.html">
 <meta property="og:site_name" content="韬光养月巴的技术博客">
-<meta property="og:description" content="RabbitMQ - 优先级队列(PriorityQueue) 在RabbitMQ中使用优先级特性需要的版本为3.5+。 使用优先级特性只需做两件事情：     1. 将队列声明为优先级队列，即在创建队列的时候添加参数 x-max-priority 以指定最大的优先级，值为0-255（整数）。     2. 为优先级消息添加优先级。   注意:没有指定优先级的消息会将优先级以0对待。 对于超过优">
+<meta property="og:description" content="转载: https:&#x2F;&#x2F;www.cnblogs.com&#x2F;zhiqian-ali&#x2F;p&#x2F;6200874.html  悲观锁（Pessimistic Lock）  悲观锁的特点是先获取锁，再进行业务操作，即“悲观”的认为获取锁是非常有可能失败的，因此要先确保获取锁成功再进行业务操作。通常所说的“一锁二查三更新”即指的是使用悲观锁。通常来讲在数据库上的悲观锁需要数据库本身提供支持，即通过常用的select">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-02-24T15:11:23.490Z">
-<meta property="article:modified_time" content="2020-02-24T15:11:23.490Z">
+<meta property="article:published_time" content="2020-05-20T08:46:14.028Z">
+<meta property="article:modified_time" content="2020-05-20T08:46:14.028Z">
 <meta property="article:author" content="韬光养月巴">
-<meta property="article:tag" content="MQ">
-<meta property="article:tag" content="RabbitMQ">
+<meta property="article:tag" content="Database">
+<meta property="article:tag" content="Mysql">
 <meta name="twitter:card" content="summary">
   <!-- Canonical links -->
-  <link rel="canonical" href="http://blog.tgyf.com/2020/02/24/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/index.html">
+  <link rel="canonical" href="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/index.html">
   
     <link rel="alternate" href="/atom.xml" title="韬光养月巴的技术博客" type="application/atom+xml">
   
@@ -347,21 +347,21 @@
   <div class="slimContent">
     <nav id="toc" class="article-toc">
       <h3 class="toc-title">文章目录</h3>
-      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#rabbitmq-优先级队列priorityqueue"><span class="toc-number">1.</span> <span class="toc-text"> RabbitMQ - 优先级队列(PriorityQueue)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#核心代码"><span class="toc-number">1.1.</span> <span class="toc-text"> 核心代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#测试"><span class="toc-number">1.2.</span> <span class="toc-text"> 测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1测试优先级队列"><span class="toc-number">1.2.1.</span> <span class="toc-text"> 1.测试优先级队列</span></a></li></ol></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#悲观锁pessimistic-lock"><span class="toc-number">1.</span> <span class="toc-text"> 悲观锁（Pessimistic Lock）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#乐观锁optimistic-lock"><span class="toc-number">2.</span> <span class="toc-text"> 乐观锁（Optimistic Lock）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#总结"><span class="toc-number">3.</span> <span class="toc-text"> 总结</span></a></li></ol>
     </nav>
   </div>
 </aside>
 
 <main class="main" role="main">
   <div class="content">
-  <article id="post-Middleware/RabbitMQ/RabbitMQ-PriorityQueue" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+  <article id="post-Mysql/Mysql乐观锁和悲观锁" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
     
     <div class="article-header">
       
         
   
     <h1 class="article-title" itemprop="name">
-      RabbitMQ（四） - 优先级队列(PriorityQueue)
+      Mysql乐观锁和悲观锁
     </h1>
   
 
@@ -369,67 +369,47 @@
       <div class="article-meta">
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
-	<a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/" class="article-date">
-	  <time datetime="2020-02-24T15:11:23.490Z" itemprop="datePublished">2020-02-24</time>
+	<a href="/2020/05/20/Mysql/Mysql%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/" class="article-date">
+	  <time datetime="2020-05-20T08:46:14.028Z" itemprop="datePublished">2020-05-20</time>
 	</a>
 </span>
         
   <span class="article-category">
     <i class="icon icon-folder"></i>
-    <a class="article-category-link" href="/categories/MQ/">MQ</a>►<a class="article-category-link" href="/categories/RabbitMQ/">RabbitMQ</a>►<a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+    <a class="article-category-link" href="/categories/Database/">Database</a>
   </span>
 
         
   <span class="article-tag">
     <i class="icon icon-tags"></i>
-	<a class="article-tag-link" href="/tags/MQ/" rel="tag">MQ</a>, <a class="article-tag-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a>
+	<a class="article-tag-link" href="/tags/Database/" rel="tag">Database</a>, <a class="article-tag-link" href="/tags/Mysql/" rel="tag">Mysql</a>
   </span>
 
 
         
 
-        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/#comments" class="article-comment-link">评论</a></span>
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/05/20/Mysql/Mysql%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/#comments" class="article-comment-link">评论</a></span>
         
       </div>
     </div>
     <div class="article-entry marked-body" itemprop="articleBody">
       
-        <h1 id="rabbitmq-优先级队列priorityqueue"><a class="markdownIt-Anchor" href="#rabbitmq-优先级队列priorityqueue"></a> RabbitMQ - 优先级队列(PriorityQueue)</h1>
-<p>在RabbitMQ中使用优先级特性需要的版本为3.5+。</p>
-<pre><code>使用优先级特性只需做两件事情：
-    1. 将队列声明为优先级队列，即在创建队列的时候添加参数 x-max-priority 以指定最大的优先级，值为0-255（整数）。
-    2. 为优先级消息添加优先级。
-</code></pre>
+        <p>转载: <a href="https://www.cnblogs.com/zhiqian-ali/p/6200874.html" target="_blank" rel="noopener">https://www.cnblogs.com/zhiqian-ali/p/6200874.html</a></p>
+<h4 id="悲观锁pessimistic-lock"><a class="markdownIt-Anchor" href="#悲观锁pessimistic-lock"></a> 悲观锁（Pessimistic Lock）</h4>
+<hr>
+<p>悲观锁的特点是先获取锁，再进行业务操作，即“悲观”的认为获取锁是非常有可能失败的，因此要先确保获取锁成功再进行业务操作。<strong>通常所说的“一锁二查三更新”即指的是使用悲观锁。通常来讲在数据库上的悲观锁需要数据库本身提供支持，即通过常用的select … for update操作来实现悲观锁</strong>。当数据库执行select for update时会获取被select中的数据行的行锁，因此其他并发执行的select for update如果试图选中同一行则会发生排斥（需要等待行锁被释放），因此达到锁的效果。select for update获取的行锁会在当前事务结束时自动释放，因此必须在事务中使用。</p>
+<p>这里需要注意的一点是不同的数据库对select for update的实现和支持都是有所区别的，例如oracle支持select for update no wait，表示如果拿不到锁立刻报错，而不是等待，mysql就没有no wait这个选项。另外mysql还有个问题<strong>是select for update语句执行中所有扫描过的行都会被锁上，这一点很容易造成问题。因此如果在mysql中用悲观锁务必要确定走了索引(Index)，而不是全表扫描(ALL)</strong>。</p>
+<h4 id="乐观锁optimistic-lock"><a class="markdownIt-Anchor" href="#乐观锁optimistic-lock"></a> 乐观锁（Optimistic Lock）</h4>
+<hr>
+<p>乐观锁的特点先进行业务操作，不到万不得已不去拿锁。即“乐观”的认为拿锁多半是会成功的，因此在进行完业务操作需要实际更新数据的最后一步再去拿一下锁就好。</p>
+<p>乐观锁在数据库上的实现完全是逻辑的，不需要数据库提供特殊的支持。一般的做法是在需要锁的数据上增加一个版本号，或者时间戳，然后按照如下方式实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1. SELECT data AS old_data, version AS old_version FROM …;</span><br><span class="line">2. 根据获取的数据进行业务操作，得到new_data和new_version</span><br><span class="line">3. UPDATE SET data &#x3D; new_data, version &#x3D; new_version WHERE version &#x3D; old_version</span><br><span class="line">if (updated row &gt; 0) &#123;</span><br><span class="line">    &#x2F;&#x2F; 乐观锁获取成功，操作完成</span><br><span class="line">&#125; else &#123;</span><br><span class="line">    &#x2F;&#x2F; 乐观锁获取失败，回滚并重试</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>乐观锁是否在事务中其实都是无所谓的，其底层机制是这样：在数据库内部update同一行的时候是不允许并发的，即数据库每次执行一条update语句时会获取被update行的写锁，直到这一行被成功更新后才释放。<strong>因此在业务操作进行前获取需要锁的数据的当前版本号，然后实际更新数据时再次对比版本号确认与之前获取的相同，并更新版本号，即可确认这之间没有发生并发的修改。如果更新失败即可认为老版本的数据已经被并发修改掉而不存在了，此时认为获取锁失败，需要回滚整个业务操作并可根据需要重试整个过程</strong>。</p>
+<h4 id="总结"><a class="markdownIt-Anchor" href="#总结"></a> 总结</h4>
 <ul>
-<li>注意:没有指定优先级的消息会将优先级以0对待。 对于超过优先级队列所定最大优先级的消息，优先级以最大优先级对待。对于相同优先级的消息，后进的排在前面。</li>
+<li>乐观锁在不发生取锁失败的情况下开销比悲观锁小，<strong>但是一旦发生失败回滚开销则比较大，因此适合用在取锁失败概率比较小的场景，可以提升系统并发性能</strong></li>
+<li>乐观锁还适用于一些比较特殊的场景，例如在业务操作过程中无法和数据库保持连接等悲观锁无法适用的地方</li>
 </ul>
-<h2 id="核心代码"><a class="markdownIt-Anchor" href="#核心代码"></a> 核心代码</h2>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.tgyf.rabbit.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.extern.slf4j.Slf4j;</span><br><span class="line"><span class="keyword">import</span> org.springframework.amqp.core.Binding;</span><br><span class="line"><span class="keyword">import</span> org.springframework.amqp.core.BindingBuilder;</span><br><span class="line"><span class="keyword">import</span> org.springframework.amqp.core.DirectExchange;</span><br><span class="line"><span class="keyword">import</span> org.springframework.amqp.core.Queue;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * direct exchange -- 直接交换器</span></span><br><span class="line"><span class="comment"> * 发送到该交换器的消息都会被路由到与 routing key 匹配的队列中</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> 韬光养月巴</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@modify</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@createDate</span> 2019/8/24 1:29 PM</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@remark</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DirectExchangeConf</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String QUEUE = <span class="string">"direct-queue-priority"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String EXCHANGE = <span class="string">"exchange-direct"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ROUTING_KEY = <span class="string">"direct.queue.priority"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function">Queue <span class="title">directQueuePriority</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">//创建队列的时候添加参数 x-max-priority 以指定最大的优先级，值为0-255</span></span><br><span class="line">        Map&lt;String, Object&gt; args= <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        args.put(<span class="string">"x-max-priority"</span>, <span class="number">100</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Queue(QUEUE, <span class="keyword">false</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function">DirectExchange <span class="title">directExchange</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DirectExchange(EXCHANGE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function">Binding <span class="title">directQueuePriorityBinding</span><span class="params">(Queue directQueuePriority, DirectExchange directExchange)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder.bind(directQueuePriority).to(directExchange).with(ROUTING_KEY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="测试"><a class="markdownIt-Anchor" href="#测试"></a> 测试</h2>
-<h3 id="1测试优先级队列"><a class="markdownIt-Anchor" href="#1测试优先级队列"></a> 1.测试优先级队列</h3>
-<p>发送优先级低的消息 100 条到 RabbitMQ</p>
-<pre><code>curl -X POST \
-  http://127.0.0.1/send \
-  -H 'Content-Type: application/json' \
-  -d '{
-    &quot;exchange&quot;:&quot;exchange-direct&quot;,
-    &quot;routingKey&quot;: &quot;direct.queue.priority&quot;,
-    &quot;priority&quot;: 1,
-    &quot;content&quot;:&quot; hello priority queue! &quot;,
-    &quot;count&quot;: 100
-}'
-</code></pre>
-<p>发送优先级高的消息 5 条到 RabbitMQ</p>
-<pre><code>curl -X POST \
-  http://127.0.0.1/send \
-  -H 'Content-Type: application/json' \
-  -d '{
-    &quot;exchange&quot;:&quot;exchange-direct&quot;,
-    &quot;routingKey&quot;: &quot;direct.queue.priority&quot;,
-    &quot;priority&quot;: 10,
-    &quot;content&quot;:&quot; &gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; hello priority queue! &quot;,
-    &quot;count&quot;: 5
-}'</code></pre>
 
       
     </div>
@@ -439,7 +419,7 @@
     
     <li class="post-copyright-link hidden-xs">
       <strong>本文链接：</strong>
-      </br><a href="http://blog.tgyf.com/2020/02/24/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/" title="RabbitMQ（四） - 优先级队列(PriorityQueue)" target="_blank" rel="external">http://blog.tgyf.com/2020/02/24/Middleware/RabbitMQ/RabbitMQ-PriorityQueue/</a>
+      </br><a href="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81/" title="Mysql乐观锁和悲观锁" target="_blank" rel="external">http://blog.tgyf.com/2020/05/20/Mysql/Mysql乐观锁和悲观锁/</a>
     </li>
     
     <li class="post-copyright-license">
@@ -486,13 +466,9 @@
   
   <ul class="pager pull-left">
     
-    <li class="prev">
-      <a href="/2020/03/04/Middleware/MQ%E6%80%BB%E7%BB%93%EF%BC%9A%EF%BC%88%E4%BA%8C%EF%BC%89MQ%E9%87%8C%E6%B6%88%E8%B4%B9%E5%88%B0%E9%87%8D%E5%A4%8D%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E/" title="MQ总结：（二）MQ里消费到重复数据怎么办？"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
-    </li>
-    
     
     <li class="next">
-      <a href="/2020/02/24/Middleware/RabbitMQ/RabbitMQ-Exchang/" title="RabbitMQ（二） - 交换器（Exchange）"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+      <a href="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/" title="Mysql锁机制"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
     </li>
     
     
