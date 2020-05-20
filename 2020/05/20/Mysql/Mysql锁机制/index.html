@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Mysql锁机制 | 韬光养月巴的技术博客</title>
+  <meta name="description" content="一、锁概述和分类 二、表锁 三、行锁 四、优化建议   一、锁概述和分类    二、表锁 偏向MyISAM存储引擎，开销小，加锁快；无死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。 【手动增加表锁】 1lock table 表名字1 read(write)，表名字2 read(write)，其它; 【查看表上加过的锁】 1show open tables; 【释放表锁】 1unlock t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mysql锁机制">
+<meta property="og:url" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="韬光养月巴的技术博客">
+<meta property="og:description" content="一、锁概述和分类 二、表锁 三、行锁 四、优化建议   一、锁概述和分类    二、表锁 偏向MyISAM存储引擎，开销小，加锁快；无死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。 【手动增加表锁】 1lock table 表名字1 read(write)，表名字2 read(write)，其它; 【查看表上加过的锁】 1show open tables; 【释放表锁】 1unlock t">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad42_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad32_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad33_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad34_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad35_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad36_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad37_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad38_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad39_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad40_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad41_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad43_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad44_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad45_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad46_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad47_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad48_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad49_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad50_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad51_.png">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad52_.png">
+<meta property="article:published_time" content="2020-05-20T08:38:35.533Z">
+<meta property="article:modified_time" content="2020-05-20T08:38:35.533Z">
+<meta property="article:author" content="韬光养月巴">
+<meta property="article:tag" content="Database">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad42_.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="韬光养月巴的技术博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/tgyf" target="_blank">
+          <img class="img-circle img-rotate" src="/images/sw.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">韬光养月巴</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Chengdu, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎访问韬光养月巴的技术博客</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Database/">Database</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JVM/">JVM</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">Java集合框架</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%A1%86%E6%9E%B6/">Java框架</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/RabbitMQ/">RabbitMQ</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SpringCloud/">SpringCloud</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a><span class="category-list-count">11</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2/">应用部署</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Database/" rel="tag">Database</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Eureka/" rel="tag">Eureka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gateway/" rel="tag">Gateway</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" rel="tag">Java集合框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LinkedList/" rel="tag">LinkedList</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQ/" rel="tag">MQ</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag">一些思考</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a><span class="tag-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Database/" style="font-size: 13.5px;">Database</a> <a href="/tags/Eureka/" style="font-size: 13px;">Eureka</a> <a href="/tags/Gateway/" style="font-size: 13px;">Gateway</a> <a href="/tags/JVM/" style="font-size: 13.33px;">JVM</a> <a href="/tags/Java/" style="font-size: 13.83px;">Java</a> <a href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" style="font-size: 13px;">Java集合框架</a> <a href="/tags/LinkedList/" style="font-size: 13px;">LinkedList</a> <a href="/tags/MQ/" style="font-size: 14px;">MQ</a> <a href="/tags/Mysql/" style="font-size: 13.5px;">Mysql</a> <a href="/tags/RabbitMQ/" style="font-size: 13.5px;">RabbitMQ</a> <a href="/tags/SpringCloud/" style="font-size: 13.67px;">SpringCloud</a> <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" style="font-size: 13.83px;">一些思考</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 13.17px;">博客</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">16</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">6</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Database/">Database</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/" class="title">Mysql锁机制</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T08:38:35.533Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Database/">Database</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Mysql/Mysql%E7%B4%A2%E5%BC%95/" class="title">Mysql索引</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T08:25:42.887Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Database/">Database</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Mysql/Mysql%E4%BA%8B%E5%8A%A1%E5%92%8C%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" class="title">Mysql事务和隔离级别</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T08:25:34.582Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Database/">Database</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Mysql/Mysql%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" class="title">Mysql主从复制</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T08:25:25.735Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/JVM/">JVM</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/03/05/Java%E8%99%9A%E6%8B%9F%E6%9C%BA/JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/" class="title">JVM类加载机制</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-03-05T03:39:58.385Z" itemprop="datePublished">2020-03-05</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar" aria-expanded="true">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一-锁概述和分类"><span class="toc-number">1.</span> <span class="toc-text"> 一、锁概述和分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二-表锁"><span class="toc-number">2.</span> <span class="toc-text"> 二、表锁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三-行锁"><span class="toc-number">3.</span> <span class="toc-text"> 三、行锁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四-优化建议"><span class="toc-number">4.</span> <span class="toc-text"> 四、优化建议</span></a></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Mysql/Mysql锁机制" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Mysql锁机制
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/" class="article-date">
+	  <time datetime="2020-05-20T08:38:35.533Z" itemprop="datePublished">2020-05-20</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Database/">Database</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/Database/" rel="tag">Database</a>, <a class="article-tag-link" href="/tags/Mysql/" rel="tag">Mysql</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <ul>
+<li><a href="#%E4%B8%80%E9%94%81%E6%A6%82%E8%BF%B0%E5%92%8C%E5%88%86%E7%B1%BB">一、锁概述和分类</a></li>
+<li><a href="#%E4%BA%8C%E8%A1%A8%E9%94%81">二、表锁</a></li>
+<li><a href="#%E4%B8%89%E8%A1%8C%E9%94%81">三、行锁</a></li>
+<li><a href="#%E5%9B%9B%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE">四、优化建议</a></li>
+</ul>
+<h2 id="一-锁概述和分类"><a class="markdownIt-Anchor" href="#一-锁概述和分类"></a> 一、锁概述和分类</h2>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad42_.png" class title="ad42_"> 
+<h2 id="二-表锁"><a class="markdownIt-Anchor" href="#二-表锁"></a> 二、表锁</h2>
+<p>偏向MyISAM存储引擎，开销小，加锁快；无死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</p>
+<p>【手动增加表锁】</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lock table 表名字1 read(write)，表名字2 read(write)，其它;</span><br></pre></td></tr></table></figure>
+<p>【查看表上加过的锁】</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show open tables;</span><br></pre></td></tr></table></figure>
+<p>【释放表锁】</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">unlock tables;</span><br></pre></td></tr></table></figure>
+<p>演示:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from mylock;</span><br><span class="line">+----+------+</span><br><span class="line">| id | name |</span><br><span class="line">+----+------+</span><br><span class="line">|  1 | a    |</span><br><span class="line">|  2 | b    |</span><br><span class="line">|  3 | c    |</span><br><span class="line">|  4 | d    |</span><br><span class="line">|  5 | e    |</span><br><span class="line">+----+------+</span><br><span class="line">5 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line"># 给mylock表加读锁,给t1表加写锁</span><br><span class="line">mysql&gt; lock table mylock read, t1 write;</span><br><span class="line">Query OK, 0 rows affected (0.02 sec)</span><br><span class="line"></span><br><span class="line"># 查看已经加锁的表, 下面的结果省略了很多行</span><br><span class="line">mysql&gt; show open tables;</span><br><span class="line">+--------------------+------------------------------------------------------+--------+-------------+</span><br><span class="line">| Database           | Table                                                | In_use | Name_locked |</span><br><span class="line">+--------------------+------------------------------------------------------+--------+-------------+</span><br><span class="line">| mysqlad            | t1                                                   |      1 |           0 |</span><br><span class="line">| performance_schema | events_transactions_current                          |      0 |           0 |</span><br><span class="line">| performance_schema | events_statements_summary_by_program                 |      0 |           0 |</span><br><span class="line">| performance_schema | events_waits_summary_by_host_by_event_name           |      0 |           0 |</span><br><span class="line">| mysqlad            | mylock                                               |      1 |           0 |</span><br><span class="line">| performance_schema | file_sum</span><br><span class="line">121 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line"># 释放表锁</span><br><span class="line">mysql&gt; unlock tables;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>读锁案例:下面通过两个会话窗口来演示对<code>mylock</code>表加读锁之后的效果:</p>
+<table>
+<thead>
+<tr>
+<th>session_1</th>
+<th>session_2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>获得表mylock的READ锁定<br></td>
+<td>连接终端</td>
+</tr>
+<tr>
+<td>当前session_1可以查询该表记录<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad32_.png" class title="ad32_"></td>
+<td>其他session(session_2)也可以查询该表<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad33_.png" class title="ad33_"></td>
+</tr>
+<tr>
+<td>当前session_1不能查询其它没有锁定的表。<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad34_.png" class title="ad34_"></td>
+<td>其他session_2可以查询或者更新未锁定的表<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad35_.png" class title="ad35_"></td>
+</tr>
+<tr>
+<td>当前session_1中插入或者更新锁定的表都会提示错误：<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad36_.png" class title="ad36_"></td>
+<td>其他session_2插入或者更新锁定表<strong>会一直等待</strong>获得锁：(阻塞)<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad37_.png" class title="ad37_"></td>
+</tr>
+<tr>
+<td>释放锁。<br>mysql&gt; unlock tables;</td>
+<td><strong>session_2</strong>立即释放阻塞，马上获得锁。<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad38_.png" class title="ad38_"></td>
+</tr>
+</tbody>
+</table>
+<p>演示对<code>mylock</code>加写锁:</p>
+<table>
+<thead>
+<tr>
+<th>seession_1</th>
+<th>session_2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>获得表mylock的WRITE锁定， 当前session对锁定表的查询+更新+插入操作都可以执行：<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad39_.png" class title="ad39_"></td>
+<td>其他session对锁定表的查询被阻塞，<br>需要等待锁被释放：<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad40_.png" class title="ad40_"><br> 在锁表前，如果session2有数据缓存，<br>锁表以后，在锁住的表不发生改变的情况下<br>session2可以读出缓存数据，一旦数据发生改变，缓存将失效，操作将被阻塞住。</td>
+</tr>
+<tr>
+<td>释放锁<br>mysql&gt; unlock tables;</td>
+<td>session_2立即被释放得到锁<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad41_.png" class title="ad41_"></td>
+</tr>
+</tbody>
+</table>
+<p>通过上面的实验，可以发现：</p>
+<p>MyISAM在执行查询语句（SELECT）前，会自动给涉及的所有表加读锁，在执行增删改操作前，会自动给涉及的表加写锁。</p>
+<p>MySQL的表级锁有两种模式：</p>
+<ul>
+<li>表共享读锁（Table Read Lock）</li>
+<li>表独占写锁（Table Write Lock）</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>锁类型</th>
+<th>他人可读</th>
+<th>他人可写</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>读锁</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>写锁</td>
+<td>否</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<p>结合上表，所以对MyISAM表进行操作，会有以下情况：</p>
+<ul>
+<li>1、对MyISAM表的读操作（加读锁），不会阻塞其他进程对同一表的读请求，但会阻塞对同一表的写请求。只有当读锁释放后，才会执行其它进程的写操作。</li>
+<li>2、对MyISAM表的写操作（加写锁），会阻塞其他进程对同一表的读和写操作，只有当写锁释放后，才会执行其它进程的读写操作。</li>
+</ul>
+<p>简而言之，就是读锁会阻塞写，但是不会堵塞读。而写锁则会把读和写都堵塞。</p>
+<p>总结:</p>
+<ul>
+<li>可以通过<code>show open tables</code>来查看哪些表被枷锁了；</li>
+<li>如何分析表锁定，可以通过检查<code>table_locks_waited</code>和<code>table_locks_immediate</code>状态变量来分析系统上的表锁定；</li>
+</ul>
+<div align="center"><img src="//blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad43_.png"></div><br>
+<p>这里有两个状态变手记录MySQL内部表级锁定的情况，两个变量说明如下:</p>
+<p><code>Table_locks_immediate</code>: 产生表级锁定的次数，表示可以立即获取锁的查询次数，每立即获取锁值加1 ;</p>
+<p><code>Table_locks_waited</code>: 出现表级锁定争用而发生等待的次数(不能立即获取锁的次数，每等待一次锁值加1)，此值高则说明存在着较严重的表级锁争用情况;</p>
+<p>总结: MyISAM的读写锁调度是<strong>写</strong>优先，这也是MyISAM不适合做写为主表的引擎。 因为写锁后，其他线程不能做任何操作，大量的更新会使查询很难得到锁，从而造成永远阻塞。</p>
+<h2 id="三-行锁"><a class="markdownIt-Anchor" href="#三-行锁"></a> 三、行锁</h2>
+<p>特点:</p>
+<ul>
+<li>偏向InnoDB存储引擎，开销大，加锁慢；</li>
+<li>会出现死锁；</li>
+<li>锁定粒度最小，发生锁冲突的概率最低，并发度也最高。</li>
+</ul>
+<blockquote>
+<p>InnoDB与MyISAM的最大不同有两点：<strong>一是支持事务（TRANSACTION）；二是采用了行级锁</strong>。</p>
+<p><strong>Innodb存储引擎由于实现了行级锁定，虽然在锁定机制的实现方面所带来的性能损耗可能比表级锁定会要更高一些，但是在整体并发处理能力方面要远远优于MyISAM的表级锁定的。当系统并发量较高的时候，Innodb的整体性能和MyISAM相比就会有比较明显的优势了</strong>。</p>
+<p>但是，Innodb的行级锁定同样也有其脆弱的一面，当我们使用不当的时候，可能会让Innodb的整体性能表现不仅不能比MyISAM高，甚至可能会更差。</p>
+</blockquote>
+<p>演示案例，建表SQL:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">create table test_innodb_lock (a int(11),b varchar(16))engine&#x3D;innodb;</span><br><span class="line"></span><br><span class="line">insert into test_innodb_lock values(1,&#39;b2&#39;);</span><br><span class="line">insert into test_innodb_lock values(3,&#39;3&#39;);</span><br><span class="line">insert into test_innodb_lock values(4,&#39;4000&#39;);</span><br><span class="line">insert into test_innodb_lock values(5,&#39;5000&#39;);</span><br><span class="line">insert into test_innodb_lock values(6,&#39;6000&#39;);</span><br><span class="line">insert into test_innodb_lock values(7,&#39;7000&#39;);</span><br><span class="line">insert into test_innodb_lock values(8,&#39;8000&#39;);</span><br><span class="line">insert into test_innodb_lock values(9,&#39;9000&#39;);</span><br><span class="line">insert into test_innodb_lock values(1,&#39;b1&#39;);</span><br><span class="line"></span><br><span class="line"># 创建两个索引</span><br><span class="line">create index test_innodb_a_ind on test_innodb_lock(a);</span><br><span class="line">create index test_innodb_lock_b_ind on test_innodb_lock(b);</span><br><span class="line"></span><br><span class="line"># 查询结果</span><br><span class="line">mysql&gt; select * from test_innodb_lock;</span><br><span class="line">+------+------+</span><br><span class="line">| a    | b    |</span><br><span class="line">+------+------+</span><br><span class="line">|    1 | b2   |</span><br><span class="line">|    3 | 3    |</span><br><span class="line">|    4 | 4000 |</span><br><span class="line">|    5 | 5000 |</span><br><span class="line">|    6 | 6000 |</span><br><span class="line">|    7 | 7000 |</span><br><span class="line">|    8 | 8000 |</span><br><span class="line">|    9 | 9000 |</span><br><span class="line">|    1 | b1   |</span><br><span class="line">+------+------+</span><br><span class="line">9 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>测试: <strong>读己之所写</strong>。</p>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad44_.png" class title="ad44_">
+<p>然后看<code>session_1</code>和<code>session_2</code>同时更新<code>a = 4</code>的情况:</p>
+<table>
+<thead>
+<tr>
+<th>更新但是不提交，即没有commit<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad45_.png" class title="ad45_"></th>
+<th>session_2被阻塞，只能等待<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad46_.png" class title="ad46_"><br></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>提交更新<br><code>mysql&gt; commit;</code></td>
+<td>解除阻塞<br><img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad47_.png" class title="ad47_"><br></td>
+</tr>
+</tbody>
+</table>
+<p>但是如果两个会话<strong>不是更新同一行</strong>呢?</p>
+<p>如果不是更新同一行，则就算在<code>session_1</code>没有<code>commit</code>的时候，<code>session_2</code>也不会阻塞。</p>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad48_.png" class title="ad48_">
+<p><strong>尽可能让所有数据检索都通过索引来完成，避免无索引行锁升级为表锁</strong>。</p>
+<p>举个例子: 因为我们的<code>b</code>是<code>varchar</code>类型的，更新的时候我故意将<code>b</code>的单引号去掉，此时<code>MYSQL</code>底层自动类型转换，但是此时就会导致索引失效，然后我们看下面，就会导致我们的行锁变成了表锁，从而导致阻塞等待。</p>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad49_.png" class title="ad49_">
+<p><strong>间隙锁带来的插入问题</strong>:</p>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad50_.png" class title="ad50_">
+<p>【什么是间隙锁】</p>
+<p><strong>当我们用范围条件而不是相等条件检索数据</strong>，并请求共享或排他锁时，InnoDB会给符合条件的已有数据记录的索引项加锁；对于键值在条件范围内但并不存在的记录，叫做“间隙（GAP)”，</p>
+<p><strong>InnoDB也会对这个“间隙”加锁(不放过一个)，这种锁机制就是所谓的间隙锁</strong>（GAP Lock）。</p>
+<p>【危害】</p>
+<p>因为Query执行过程中通过过范围查找的话，他会锁定整个范围内所有的索引键值，即使这个键值并不存在。</p>
+<p>间隙锁有一个比较致命的弱点，就是当锁定一个范围键值之后，即使某些不存在的键值也会被无辜的锁定，而造成在锁定的时候无法插入锁定键值范围内的任何数据。在某些场景下这可能会对性能造成很大的危害。</p>
+<blockquote>
+<p>面试题：常考如何锁定一行。</p>
+<p>使用<code>for update</code>。</p>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad51_.png" class title="ad51_">
+</blockquote>
+<p><strong>【如何分析行锁定】</strong></p>
+<p>通过检查InnoDB_row_lock状态变量来分析系统上的行锁的争夺情况</p>
+<p><code>mysql&gt;show status like 'innodb_row_lock%';</code></p>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad52_.png" class title="ad52_">
+<p>对各个状态量的说明如下：</p>
+<p><code>Innodb_row_lock_current_waits</code>：当前正在等待锁定的数量；</p>
+<p><code>Innodb_row_lock_time</code>：从系统启动到现在锁定总时间长度；</p>
+<p><code>Innodb_row_lock_time_avg</code>：每次等待所花平均时间；</p>
+<p><code>Innodb_row_lock_time_max</code>：从系统启动到现在等待最常的一次所花的时间；</p>
+<p><code>Innodb_row_lock_waits</code>：<strong>系统启动后到现在总共等待的次数</strong>；</p>
+<p>对于这5个状态变量，比较重要的主要是</p>
+<p><code>Innodb_row_lock_time_avg</code>（等待平均时长），</p>
+<p><code>Innodb_row_lock_waits</code>（等待总次数）</p>
+<p><code>Innodb_row_lock_time</code>（等待总时长）这三项。</p>
+<p>尤其是当等待次数很高，而且每次等待时长也不小的时候，我们就需要分析系统中为什么会有如此多的等待，然后根据分析结果着手指定优化计划。</p>
+<p>最后可以通过<code>SELECT * FROM information_schema.INNODB_TRX\G;</code>来查询正在被锁阻塞的sql语句。</p>
+<h2 id="四-优化建议"><a class="markdownIt-Anchor" href="#四-优化建议"></a> 四、优化建议</h2>
+<ul>
+<li><strong>尽可能让所有数据检索都通过索引来完成，避免无索引行锁升级为表锁</strong>；</li>
+<li><strong>尽可能较少检索条件，避免间隙锁</strong>；</li>
+<li>尽量控制事务大小，减少锁定资源量和时间长度；</li>
+<li>锁住某行后，尽量不要去调别的行或表，赶紧处理被锁住的行然后释放掉锁；</li>
+<li>涉及相同表的事务，对于调用表的顺序尽量保持一致；</li>
+<li>在业务环境允许的情况下,尽可能低级别事务隔离；</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      </br><a href="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/" title="Mysql锁机制" target="_blank" rel="external">http://blog.tgyf.com/2020/05/20/Mysql/Mysql锁机制/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      </br>本博客所有文章除特别声明外，均采用 知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议 许可协议。转载请注明出处
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/tgyf" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/sw.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/tgyf" target="_blank"><span class="text-dark">韬光养月巴</span><small class="ml-1x">Java Developer &amp; Designer</small></a></h3>
+        <div>勿在浮沙筑高台,不为繁华易匠心.</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2020/05/20/Mysql/Mysql%E7%B4%A2%E5%BC%95/" title="Mysql索引"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>
