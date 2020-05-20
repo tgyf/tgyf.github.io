@@ -46,8 +46,8 @@
 <meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad50_.png">
 <meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad51_.png">
 <meta property="og:image" content="http://blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad52_.png">
-<meta property="article:published_time" content="2020-05-20T08:38:35.533Z">
-<meta property="article:modified_time" content="2020-05-20T08:38:35.533Z">
+<meta property="article:published_time" content="2020-05-20T08:41:54.574Z">
+<meta property="article:modified_time" content="2020-05-20T08:41:54.574Z">
 <meta property="article:author" content="韬光养月巴">
 <meta property="article:tag" content="Database">
 <meta property="article:tag" content="Mysql">
@@ -289,7 +289,7 @@
                 <a href="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/" class="title">Mysql锁机制</a>
               </p>
               <p class="item-date">
-                <time datetime="2020-05-20T08:38:35.533Z" itemprop="datePublished">2020-05-20</time>
+                <time datetime="2020-05-20T08:41:54.574Z" itemprop="datePublished">2020-05-20</time>
               </p>
             </div>
           </li>
@@ -392,7 +392,7 @@
         <span class="article-date">
     <i class="icon icon-calendar-check"></i>
 	<a href="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/" class="article-date">
-	  <time datetime="2020-05-20T08:38:35.533Z" itemprop="datePublished">2020-05-20</time>
+	  <time datetime="2020-05-20T08:41:54.574Z" itemprop="datePublished">2020-05-20</time>
 	</a>
 </span>
         
@@ -523,7 +523,7 @@
 <li>可以通过<code>show open tables</code>来查看哪些表被枷锁了；</li>
 <li>如何分析表锁定，可以通过检查<code>table_locks_waited</code>和<code>table_locks_immediate</code>状态变量来分析系统上的表锁定；</li>
 </ul>
-<div align="center"><img src="//blog.tgyf.com/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad43_.png"></div><br>
+<img src="/2020/05/20/Mysql/Mysql%E9%94%81%E6%9C%BA%E5%88%B6/ad43_.png" class title="ad43_"> 
 <p>这里有两个状态变手记录MySQL内部表级锁定的情况，两个变量说明如下:</p>
 <p><code>Table_locks_immediate</code>: 产生表级锁定的次数，表示可以立即获取锁的查询次数，每立即获取锁值加1 ;</p>
 <p><code>Table_locks_waited</code>: 出现表级锁定争用而发生等待的次数(不能立即获取锁的次数，每等待一次锁值加1)，此值高则说明存在着较严重的表级锁争用情况;</p>
