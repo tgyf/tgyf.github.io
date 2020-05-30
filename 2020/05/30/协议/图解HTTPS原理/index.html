@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>图解HTTPS原理 | 韬光养月巴的技术博客</title>
+  <meta name="description" content="存在即合理 http是非常常见的应用层协议，是超文本传输协议的简称，其传输的内容都是明文的。在这个混乱的世界，明文传输信息想想就可怕，网络“小混混”的手段远比我们这些凡人高明得多，他们有一万种方式劫持，篡改我们的数据。对于一个网站或者服务，如果你给你的用户两个选择：  通讯数据明文传输，速度快； 通讯数据加密传输，但是速度可能会稍微慢一点；  我想，只要脑袋没有长歪的用户都宁愿牺牲一点速度去换取">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图解HTTPS原理">
+<meta property="og:url" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="韬光养月巴的技术博客">
+<meta property="og:description" content="存在即合理 http是非常常见的应用层协议，是超文本传输协议的简称，其传输的内容都是明文的。在这个混乱的世界，明文传输信息想想就可怕，网络“小混混”的手段远比我们这些凡人高明得多，他们有一万种方式劫持，篡改我们的数据。对于一个网站或者服务，如果你给你的用户两个选择：  通讯数据明文传输，速度快； 通讯数据加密传输，但是速度可能会稍微慢一点；  我想，只要脑袋没有长歪的用户都宁愿牺牲一点速度去换取">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YVC0hj.jpg">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YEQ7lT.jpg">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE1XJ1.jpg">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE3pLD.jpg">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE8WvV.jpg">
+<meta property="og:image" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE8Lgx.jpg">
+<meta property="article:published_time" content="2020-05-30T08:55:32.355Z">
+<meta property="article:modified_time" content="2020-05-30T08:55:32.355Z">
+<meta property="article:author" content="韬光养月巴">
+<meta property="article:tag" content="HTTPS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YVC0hj.jpg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="韬光养月巴的技术博客" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+    <link href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.css" rel="stylesheet">
+  
+  
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/tgyf" target="_blank">
+          <img class="img-circle img-rotate" src="/images/sw.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">韬光养月巴</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Java Developer &amp; Designer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Chengdu, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎访问韬光养月巴的技术博客</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Database/">Database</a><span class="category-list-count">9</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/JVM/">JVM</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a><span class="category-list-count">1</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%9F%BA%E7%A1%80/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">Java集合框架</a><span class="category-list-count">1</span></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">Java并发编程</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java%E6%A1%86%E6%9E%B6/">Java框架</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MQ/">MQ</a><span class="category-list-count">10</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/MyBatis/">MyBatis</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/RabbitMQ/">RabbitMQ</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/SpringCloud/">SpringCloud</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a><span class="category-list-count">11</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%8D%8F%E8%AE%AE/">协议</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2/">应用部署</a><span class="category-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Database/" rel="tag">Database</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Eureka/" rel="tag">Eureka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gateway/" rel="tag">Gateway</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/HTTPS/" rel="tag">HTTPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">Java并发编程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" rel="tag">Java集合框架</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LinkedList/" rel="tag">LinkedList</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MQ/" rel="tag">MQ</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RabbitMQ/" rel="tag">RabbitMQ</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" rel="tag">一些思考</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a><span class="tag-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Database/" style="font-size: 13.83px;">Database</a> <a href="/tags/Eureka/" style="font-size: 13px;">Eureka</a> <a href="/tags/Gateway/" style="font-size: 13px;">Gateway</a> <a href="/tags/HTTPS/" style="font-size: 13px;">HTTPS</a> <a href="/tags/JVM/" style="font-size: 13.33px;">JVM</a> <a href="/tags/Java/" style="font-size: 13.83px;">Java</a> <a href="/tags/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 13px;">Java并发编程</a> <a href="/tags/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" style="font-size: 13px;">Java集合框架</a> <a href="/tags/LinkedList/" style="font-size: 13px;">LinkedList</a> <a href="/tags/MQ/" style="font-size: 14px;">MQ</a> <a href="/tags/MyBatis/" style="font-size: 13.17px;">MyBatis</a> <a href="/tags/Mysql/" style="font-size: 13.83px;">Mysql</a> <a href="/tags/RabbitMQ/" style="font-size: 13.5px;">RabbitMQ</a> <a href="/tags/SpringCloud/" style="font-size: 13.67px;">SpringCloud</a> <a href="/tags/%E4%B8%80%E4%BA%9B%E6%80%9D%E8%80%83/" style="font-size: 13.83px;">一些思考</a> <a href="/tags/%E5%8D%9A%E5%AE%A2/" style="font-size: 13.17px;">博客</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">五月 2020</a><span class="archive-list-count">15</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a><span class="archive-list-count">15</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">二月 2020</a><span class="archive-list-count">6</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%8D%8F%E8%AE%AE/">协议</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/" class="title">图解HTTPS原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-30T08:55:32.355Z" itemprop="datePublished">2020-05-30</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/MyBatis/">MyBatis</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Java%E6%A1%86%E6%9E%B6/Mybatis/MyBatis%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%20-%20%E7%BC%93%E5%AD%98%E5%8E%9F%E7%90%86/" class="title">MyBatis 源码分析 - 缓存原理</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T13:38:00.146Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/MyBatis/">MyBatis</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Java%E6%A1%86%E6%9E%B6/Mybatis/MyBatis%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%20-%20%E6%8F%92%E4%BB%B6%E6%9C%BA%E5%88%B6/" class="title">MyBatis 源码分析 - 插件机制</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T13:13:16.494Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/" class="title">Java线程池原理分析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T12:54:06.955Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Java%E5%9F%BA%E7%A1%80/">Java基础</a><i class="icon icon-angle-right"></i><a class="category-link" href="/categories/Java%E5%9F%BA%E7%A1%80/Java%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/">Java集合框架</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/20/Java%E5%9F%BA%E7%A1%80/LinkedList%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="title">LinkedList源码分析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-20T10:00:31.210Z" itemprop="datePublished">2020-05-20</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<aside class="sidebar sidebar-toc collapse in" id="collapseToc" itemscope itemtype="http://schema.org/WPSideBar" aria-expanded="true">
+  <div class="slimContent">
+    <nav id="toc" class="article-toc">
+      <h3 class="toc-title">文章目录</h3>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#存在即合理"><span class="toc-number">1.</span> <span class="toc-text"> 存在即合理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一层层揭开https神秘面纱"><span class="toc-number">2.</span> <span class="toc-text"> 一层层揭开HTTPS神秘面纱</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#第一层安全传输数据"><span class="toc-number">2.1.</span> <span class="toc-text"> 第一层（安全传输数据）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第二层安全传输密钥"><span class="toc-number">2.2.</span> <span class="toc-text"> 第二层（安全传输密钥）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第三层安全传输公钥"><span class="toc-number">2.3.</span> <span class="toc-text"> 第三层（安全传输公钥）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#四层安全传输证书"><span class="toc-number">2.4.</span> <span class="toc-text"> 四层（安全传输证书）</span></a></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-协议/图解HTTPS原理" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      图解HTTPS原理
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/" class="article-date">
+	  <time datetime="2020-05-30T08:55:32.355Z" itemprop="datePublished">2020-05-30</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E5%8D%8F%E8%AE%AE/">协议</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/HTTPS/" rel="tag">HTTPS</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="存在即合理"><a class="markdownIt-Anchor" href="#存在即合理"></a> 存在即合理</h2>
+<p>http是非常常见的应用层协议，是超文本传输协议的简称，其传输的内容都是明文的。在这个混乱的世界，明文传输信息想想就可怕，网络“小混混”的手段远比我们这些凡人高明得多，他们有一万种方式劫持，篡改我们的数据。对于一个网站或者服务，如果你给你的用户两个选择：</p>
+<ul>
+<li>通讯数据明文传输，速度快；</li>
+<li>通讯数据加密传输，但是速度可能会稍微慢一点；</li>
+</ul>
+<p>我想，只要脑袋没有长歪的用户都宁愿牺牲一点速度去换取数据传输的安全。<br>
+这样，https的存在就具备了合理性，https中的s表示SSL或者TLS，就是在原http的基础上加上一层用于数据加密、解密、身份认证的安全层。</p>
+<h2 id="一层层揭开https神秘面纱"><a class="markdownIt-Anchor" href="#一层层揭开https神秘面纱"></a> 一层层揭开HTTPS神秘面纱</h2>
+<p>本文试图通过层层渐进方式来通俗的阐述https的原理，若有错误，欢迎大家指正。</p>
+<p>虽然要层层渐进，但是我们不妨先奉上刚画好的还热乎着的https通信完整流程图：</p>
+<img src="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YVC0hj.jpg" class title="YVC0hj">
+<p>https通讯过程</p>
+<p>从上图可以看到，右边有一堆钥匙，一看到钥匙我们就能想到这个过程免不了加密。另外，那些钥匙长得还不一样，有些只有一把，有些是一对，嗯，是的，你看得真仔细。</p>
+<p>好的，扯远了，现在开始层层渐进。</p>
+<h3 id="第一层安全传输数据"><a class="markdownIt-Anchor" href="#第一层安全传输数据"></a> 第一层（安全传输数据）</h3>
+<p>假如我们要实现一个功能：一个用户A给一个用户B发消息，但是要保证这个消息的内容只能被A和B知道，其他的无论是墨渊上神还是太上老君都没办法破解或者篡改消息的内容。</p>
+<img src="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YEQ7lT.jpg" class title="YEQ7lT">
+<p>第一层</p>
+<p>如上图，需求就是这么简单，A给B发一条消息，因为比较私密，不想被其他人看到。</p>
+<p>由于消息不想被其他人看到，所以我们自然而然就会想到为消息加密，并且只有A和B才有解密的密钥。这里需要考虑几点：</p>
+<ul>
+<li>使用什么加密方式？</li>
+<li>密钥怎么告知对方？</li>
+</ul>
+<p>对于第一个问题，加密算法分为两类：对称加密和非对称加密，这里我们选择对称机密，原因有如下几个：</p>
+<ul>
+<li>对称加密速度快，加密时CPU资源消耗少；</li>
+<li>非对称加密对待加密的数据的长度有比较严格的要求，不能太长，但是实际中消息可能会很长（比如你给你女朋友发情书），因此非对称加密就满足不了；<br>
+对于第二个问题，这是导致整个https通信过程很复杂的根本原因。 如果A或B直接把他们之间用于解密的密钥通过互联网传输给对方，那一旦密钥被第三者劫持，第三者就能正确解密A,B之间的通信数据。</li>
+</ul>
+<h3 id="第二层安全传输密钥"><a class="markdownIt-Anchor" href="#第二层安全传输密钥"></a> 第二层（安全传输密钥）</h3>
+<p>通过第一层的描述，第二层需要解决的问题是：安全地传输A,B之间用于解密数据的密钥。</p>
+<img src="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE1XJ1.jpg" class title="YE1XJ1">
+<p>第二层</p>
+<p>因为如果传输过程中这把密钥被第三者拿到了，就能解密传通信数据，所以，这把密钥必须得加密，就算第三者劫持到这把加密过的密钥，他也不能解密，得到真正的密钥。</p>
+<p>这里有一个问题，那要用什么方式加密这把密钥呢？如果使用对称加密，那这个对称加密的密钥又怎么安全地告诉对方呢？完了，陷入死循环了… 所以，一定不能用对称加密</p>
+<p>那就是用非对称加密咯，那如何应用非对称加密来加密那把密钥呢？</p>
+<p>考虑如下方式：</p>
+<img src="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE3pLD.jpg" class title="YE3pLD">
+<p>非对称加密密钥</p>
+<ol>
+<li>客户端： 我要发起HTTPS请求，麻烦给我一个非对称加密的公钥；</li>
+<li>服务器： (生成一对非对称加密的密钥对，然后把公钥发给客户端)，接着，这是公钥；</li>
+<li>客户端：（收到公钥，生成一个随机数，作为上图中那一把密钥，用刚才收到的公钥加密这个密钥，然后发给服务器）这是我刚生成的加密过的密钥；</li>
+<li>服务器：（收到加密后的密钥，用本地的第一步自己生成的非对称加密的私钥解密，得到真正的密钥）;</li>
+<li>现在，客户端和服务器都知道了这把密钥，就能愉快地用这个密钥对称加密数据…<br>
+分析一下上面步骤的可行性：</li>
+</ol>
+<ul>
+<li>上述步骤中最终用于加密数据的密钥是客户端生成并且用公钥加密之后传给服务器的，因为私钥只有服务器才有，所以也就只有服务器才能解开客户端上报的密钥；</li>
+<li>要保证传输的密钥只能被服务器解密，就得保证用于加密密钥的公钥一定是服务器下发的，绝对不可能被第三方篡改过；<br>
+因为还可能存在一种&quot;中间人攻击&quot;的情况，如下图：</li>
+</ul>
+<img src="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE8WvV.jpg" class title="YE8WvV">
+<p>中间人攻击</p>
+<p>这种情况下，客户端和服务器之间通信的数据就完全被坏人破解了。</p>
+<h3 id="第三层安全传输公钥"><a class="markdownIt-Anchor" href="#第三层安全传输公钥"></a> 第三层（安全传输公钥）</h3>
+<p>从上一层可以知道，要保证数据的安全，就必须得保证服务器给客户端下发的公钥是真正的公钥，而不是中间人伪造的公钥。那怎么保证呢？</p>
+<p>那就得引入数字证书了，数字证书是服务器主动去权威机构申请的，证书中包含了上一个图中的加密过的A公钥和权威机构的信息，所以服务器只需要给客户端下发数字证书即可。现在流程图如下：</p>
+<img src="/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/YE8Lgx.jpg" class title="YE8Lgx">
+<p>数字证书</p>
+<p>那数字证书中的A公钥是如何加密的呢？</p>
+<p>答案是非对称加密，只不过这里是使用只有权威机构自己才有的私钥加密。</p>
+<p>等一下，既然A公钥被权威机构的私钥加密了，那客户端收到证书之后怎么解密证书中的A公钥呢?需要有权威机构的公钥才能解密啊！那这个权威机构的公钥又是怎么安全地传输给客户端的呢？感觉进入了鸡生蛋，蛋生鸡的悖论了~~</p>
+<p>别慌，答案是权威机构的公钥不需要传输，因为权威机构会和主流的浏览器或操作系统合作，将他们的公钥内置在浏览器或操作系统环境中。客户端收到证书之后，只需要从证书中找到权威机构的信息，并从本地环境中找到权威机构的公钥，就能正确解密A公钥。</p>
+<p>这样就绝对安全了吗？既然权威技能能给服务器签发数字证书，那为什么就不可能给中间人签发数字证书呢?毕竟赚钱的生意权威机构也不会拒绝的呀。</p>
+<p>试想一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">服务器给客户端下发数字证书时证书被中间人劫持了，中间人将服务器的证书替换成自己的证书下发给客户端，客户端收到之后能够通过权威机构的公钥解密证书内容（因为中间人的证书也是权威机构私钥加密的），从而获取公钥，</span><br><span class="line">但是，这里的公钥并不是服务器原本的A公钥，而是中间人自己证书中的B公钥。从第二层可知，如果不能保证客户端收到的公钥是服务器下发的，那整个通信数据的安全就没法保证。简单总结就是证书被调包~</span><br></pre></td></tr></table></figure>
+<p>所以，还得保证客户端收到的证书就是服务器下发的证书，没有被中间人篡改过。</p>
+<h3 id="四层安全传输证书"><a class="markdownIt-Anchor" href="#四层安全传输证书"></a> 四层（安全传输证书）</h3>
+<p>这一层，我们的任务是：保证客户端收到的证书是服务器下发的证书，没有被中间人篡改过。</p>
+<p>所以，这里就有两个需求:</p>
+<ol>
+<li>证明证书内容没有被第三方篡改过；</li>
+<li>证明证书是服务器下发的；<br>
+其实这些问题，数字证书本身已经提供方案了，数字证书中除了包含加密之后的服务器公钥，权威机构的信息之外，还包含了证书内容的签名(先通过Hash函数计算得到证书数字摘要，然后用权威机构私钥加密数字摘要得到数字签名)，签名计算方法以及证书对应的域名。这样一来，客户端收到证书之后：</li>
+</ol>
+<ul>
+<li>使用权威机构的公钥解密数字证书，得到证书内容（服务器的公钥）以及证书的数字签名，然后根据证书上描述的计算证书签名的方法计算一下当前证书的签名，与收到的签名作对比，如果一样，表示证书一定是服务器下发的，没有被中间人篡改过。因为中间人虽然有权威机构的公钥，能够解析证书内容并篡改，但是篡改完成之后中间人需要将证书重新加密，但是中间人没有权威机构的私钥，无法加密，强行加密只会导致客户端无法解密，如果中间人强行乱修改证书，就会导致证书内容和证书签名不匹配。所以证书签名就能判断证书是否被篡改</li>
+<li>再考虑证书被掉包的情况：中间人同样可以向权威机构申请一份证书，然后在服务器给客户端下发证书的时候劫持原证书，将自己的假证书下发给客户端，客户端收到之后依然能够使用权威机构的公钥解密证书，并且证书签名也没问题。但是这个时候客户端还需要检查证书中的域名和当前访问的域名是否一致。如果不一致，会发出警告！<br>
+从上面的分析可以看到，数字证书中的信息确实能让客户端辨别证书的真伪。</li>
+</ul>
+<p>原文转自：<a href="https://zhuanlan.zhihu.com/p/25976060" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/25976060</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      </br><a href="http://blog.tgyf.com/2020/05/30/%E5%8D%8F%E8%AE%AE/%E5%9B%BE%E8%A7%A3HTTPS%E5%8E%9F%E7%90%86/" title="图解HTTPS原理" target="_blank" rel="external">http://blog.tgyf.com/2020/05/30/协议/图解HTTPS原理/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong>
+      </br>本博客所有文章除特别声明外，均采用 知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议 许可协议。转载请注明出处
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/tgyf" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/sw.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/tgyf" target="_blank"><span class="text-dark">韬光养月巴</span><small class="ml-1x">Java Developer &amp; Designer</small></a></h3>
+        <div>勿在浮沙筑高台,不为繁华易匠心.</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2020/05/20/Java%E6%A1%86%E6%9E%B6/Mybatis/MyBatis%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%20-%20%E7%BC%93%E5%AD%98%E5%8E%9F%E7%90%86/" title="MyBatis 源码分析 - 缓存原理"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+    <li class="toggle-toc">
+      <a class="toggle-btn collapsed" data-toggle="collapse" href="#collapseToc" aria-expanded="false" title="文章目录" role="button">
+        <span>[&nbsp;</span><span>文章目录</span>
+        <i class="text-collapsed icon icon-anchor"></i>
+        <i class="text-in icon icon-close"></i>
+        <span>]</span>
+      </a>
+    </li>
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/tgyf" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '',
+    appKey: '',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.3.5/dist/jquery.fancybox.min.js"></script>
+  <script>
+  //利用 FancyBox 实现点击图片放大
+  $(document).ready(function() {
+    $('article img').not('[hidden]').not('.panel-body img').each(function() {
+      var $image = $(this);
+      var imageCaption = $image.attr('alt');
+      var $imageWrapLink = $image.parent('a');
+      if ($imageWrapLink.length < 1) {
+        var src = this.getAttribute('src');
+        var idx = src.lastIndexOf('?');
+        if (idx != -1) {
+          src = src.substring(0, idx);
+        }
+        $imageWrapLink = $image.wrap('<a href="' + src + '"></a>').parent('a');
+      }
+      $imageWrapLink.attr('data-fancybox', 'images');
+      if (imageCaption) {
+        $imageWrapLink.attr('data-caption', imageCaption);
+      }
+    });
+    $().fancybox({
+      selector: '[data-fancybox="images"]',
+      hash: false,
+      loop: false,
+    });
+  });
+  </script>
+
+
+
+
+
+</body>
+</html>
